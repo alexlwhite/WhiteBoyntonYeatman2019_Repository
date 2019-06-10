@@ -87,7 +87,11 @@ pc = nc./nt;
 
 fitTiltLevels = uLTilts';
 
-[fitParams, LL, exitflag] = PAL_PFML_Fit(fitTiltLevels, nc, nt, searchGrid, freeParams, psychFun,'lapseLimits',lapseLimits);
+if isnan(fixedLapse) %set lapse limits if lapse rate (lambda) is free
+    [fitParams, LL, exitflag] = PAL_PFML_Fit(fitTiltLevels, nc, nt, searchGrid, freeParams, psychFun,'lapseLimits',lapseLimits);
+else %otherwise, lambda is fixed in the searchGrid and freeParams inputs 
+    [fitParams, LL, exitflag] = PAL_PFML_Fit(fitTiltLevels, nc, nt, searchGrid, freeParams, psychFun); 
+end
 firstTryWorked = exitflag;
 if exitflag == 0 %if fit didn't converge the first time, try again
     [fitParams, LL, exitflag] = PAL_PFML_Fit(fitTiltLevels, nc, nt, searchGrid2, freeParams, psychFun,'lapseLimits',lapseLimits);
