@@ -1,3 +1,38 @@
+%% function kernelWidth = pairedSampleDensityPlot(data, opt)
+% This function plots two smoothed distributions next to each other. 
+% The distributions are arranged vertically. Smoothing is done with
+% Matlab's ksdensity and a normal kernel. 
+% 
+% Inputs: 
+% - data: a 1x2 cell array of vectors of data from the two samples. 
+% - opt: a structure with various options. The first set refer to the
+%  width of the Gaussian smoothing kernel. That is set to be the same for
+%  both conditions. You can  set the kernel width by setting
+%  opt.fixKernelWidth = true, and then setting opt.fixedKernelWidth to the
+%  value you want. Or, if opt.fixKernelWidth = false you can let ksdensity
+%  choose the best width for both data sets, then take the average, and
+%  then multiple by some scale factor opt.kernelWidthFactor. 
+%  Other parameters in opt: 
+%  - midlineX: the horizontal x-value of the midline between the two
+%  distributions. 
+%  - fillColors: a 2x3 matrix of RGB color values for the fill of each distribution, with 1 row for each conditon 
+%  - edgeColors: a 2x3 matrix of RGB color vlaues for the edge color of each distribution
+%  - fillLineWidth: line width for the distributions 
+%  - plotMean: whether or not to plot the mean of each distribution as a
+%    horizontal line on top of the smoothed distribution
+%  - opt.meanLineWidth: width of the line showing the mean 
+%  - labelXVals: Boolean, whether or not to have x-tick values labeled.
+%  - doXLabel: whether to have the x-axis labeled "Probability density"
+%  - doLegend: whether to add a legend 
+%  - legendLabs: 1x2 cell array for the legend labels 
+%  - legendLoc: character string, the location of the legend in the plot
+%  (e.g., 'NorthWest') 
+%
+% Output: 
+% - kernelWidth: the kernel width used. 
+% 
+% By Alex L. White, University of Washington, 2019
+
 function kernelWidth = pairedSampleDensityPlot(data, opt)
 
 if opt.fixKernelWidth
@@ -9,7 +44,7 @@ else
         [~, ~, optKernelWidths(jj)] = ksdensity(data{jj},'kernel','normal');
     end
     
-    %then set kernel width to half the average
+    %then set kernel width to some fraction of the average
     kernelWidth = mean(optKernelWidths)*opt.kernelWidthFactor;
     
 end
