@@ -32,7 +32,7 @@ datMarkSz = 4;
 
 
 %% Pull out data
-ds = [T.uncued T.cuedAW T.singleStim];
+ds = [T.thresh_Uncued T.thresh_Cued T.thresh_SingleStim];
 condLabels = {'Uncued','Cued','Single Stim.'};
 condLabelShort = {'Uncued','Cued','SingleStim'};
 nCueConds = size(ds,2);
@@ -405,8 +405,8 @@ end
 
 %% finally, for adults, compute percent reduction from cued to single stimulus 
 minAge = 20;
-goodS = T.age<=minAge & ~isnan(T.singleStim); 
-someThreshs = [T.uncued T.cuedAW T.singleStim]; 
+goodS = T.age<=minAge & ~isnan(T.thresh_SingleStim); 
+someThreshs = [T.thresh_Uncued T.thresh_Cued T.thresh_SingleStim]; 
 someThreshs = someThreshs(goodS,:);
 
 if log10Dat

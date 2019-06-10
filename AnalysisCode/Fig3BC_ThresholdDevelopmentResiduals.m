@@ -1,5 +1,5 @@
 %% function Fig3BC_ThresholdDevelopmentResiduals(T, condLabels, figH, figSize, subplotPositions, fontSize, paths)
-% Analyze thresholds in White, Boynton & Yeatman (2019)
+% Makes Figure 3B and 3C in White, Boynton & Yeatman (2019)
 % This function plots residuals of thresholds from the developmental model, and then
 % ROC anlaysis of those residuals comparing the DYS and CON groups. 
 % This plots 2 panels of a figure that was started in another function
@@ -120,15 +120,17 @@ for cueI = 1:nConds
   
     %% B. histogram of residuals for DYS vs CON groups, with ROC analysis
     
-    dysRes = resids(strcmp(T.readingGroup,'Dyslexic'));
-    typRes = resids(strcmp(T.readingGroup,'Typical'));
+    dysRes = resids(strcmp(T.readingGroup,'Dyslexic') & ~isnan(resids));
+    typRes = resids(strcmp(T.readingGroup,'Typical') & ~isnan(resids));
     
     %ROC analysis
-    bothGroupResids = resids(~strcmp(T.readingGroup,'Neither'));
-    groupLabs = T.readingGroup(~strcmp(T.readingGroup,'Neither'));
+    bothGroupResids = resids(~strcmp(T.readingGroup,'Neither') & ~isnan(resids));
+    groupLabs = T.readingGroup(~strcmp(T.readingGroup,'Neither') & ~isnan(resids));
     groupIs = NaN(size(bothGroupResids));
     groupIs(strcmp(groupLabs,'Dyslexic')) = 1;
     groupIs(strcmp(groupLabs,'Typical')) = 0;
+    
+   
     [Ag] = ROC(bothGroupResids, groupIs);
     
     ROCpermute = true; nPermute = 5000;
@@ -182,6 +184,7 @@ for cueI = 1:nConds
     else
         text(textx, texty, sprintf('AUC=%.2f', Ag));
     end
+    
     
     
     %% print stats

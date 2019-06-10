@@ -1,5 +1,23 @@
 %% function FigS4BC_RT_CueEffectDevelopmentResiduals(T, figSize, figHandle, subplotPositions, fontSize, paths)
-
+% Makes Figure S4B and S4C for the supplement to White, Boynton & Yeatman (2019)
+% This function plots residuals of RT cueing effects from the developmental model, and then
+% ROC anlaysis of those residuals comparing the DYS and CON groups. 
+% This plots 2 panels of a figure that was started in another function
+% (linked to figH), and prints a stats file. 
+%
+% Inputs : 
+% - T: table with information about each subject and their RTs.
+% - figSize: [width height] of the figure to be saved, in cm
+% - figHandle: handle to the figure into which these 2 panels should be
+%    plotted.
+% - subplotPositions: matrix of coordinates of the subplots, by row and
+%   column. 
+% - fontSize: size of the figure's font
+% - paths: a structure with full directory names for the figure folder
+%   (paths.figs) and stats folder (paths.stats) 
+% 
+% 
+% By Alex L. White, University of Washington, 2019
 function FigS4BC_RT_CueEffectDevelopmentResiduals(T, figSize, figHandle, subplotPositions, fontSize, paths)
 
 readMeasure = 'twre_pde_ss';

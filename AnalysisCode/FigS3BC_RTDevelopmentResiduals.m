@@ -6,7 +6,7 @@
 % (linked to figH), and prints a stats file. 
 %
 % Inputs : 
-% - T: table with information about each subject and their RTs rates.
+% - T: table with information about each subject and their RTs.
 % - condLabels: cell array of labels of each condition for which we have
 %   residuals. 
 % - figH: handle to the figure into which these 2 panels should be
@@ -21,7 +21,7 @@
 % 
 % By Alex L. White, University of Washington, 2019
 
-function FigS3BC_RTDevelopmentResiduals_2(T, condLabels, figH, figSize, subplotPositions, fontSize, paths)
+function FigS3BC_RTDevelopmentResiduals(T, condLabels, figH, figSize, subplotPositions, fontSize, paths)
 
 readMeasure = 'twre_pde_ss';
 readMeasureLabel = 'TOWRE PDE';
@@ -121,12 +121,13 @@ for cueI = 1:nConds
   
     %% B. histogram of residuals for DYS vs CON groups, with ROC analysis
     
-    dysRes = resids(strcmp(T.readingGroup,'Dyslexic'));
-    typRes = resids(strcmp(T.readingGroup,'Typical'));
+    dysRes = resids(strcmp(T.readingGroup,'Dyslexic') & ~isnan(resids));
+    typRes = resids(strcmp(T.readingGroup,'Typical') & ~isnan(resids));
+   
     
     %ROC analysis
-    bothGroupResids = resids(~strcmp(T.readingGroup,'Neither'));
-    groupLabs = T.readingGroup(~strcmp(T.readingGroup,'Neither'));
+    bothGroupResids = resids(~strcmp(T.readingGroup,'Neither') & ~isnan(resids));
+    groupLabs = T.readingGroup(~strcmp(T.readingGroup,'Neither') & ~isnan(resids));
     groupIs = NaN(size(bothGroupResids));
     groupIs(strcmp(groupLabs,'Dyslexic')) = 1;
     groupIs(strcmp(groupLabs,'Typical')) = 0;

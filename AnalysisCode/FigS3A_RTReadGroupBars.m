@@ -3,7 +3,7 @@
 % Bar plots for meanCorrRTs in 2 age groups (younger and older than 20) and
 % 2 reading groups (DYS and CON)
 %
-% Creates just 1 column of Figure 3, which is finished in another function.
+% Creates just 1 column of Figure S3, which is finished in another function.
 %
 % Also prints out statistics from LMEs to accompany the bar plots.
 %
@@ -26,7 +26,7 @@ function figh = FigS3A_RTReadGroupBars(T, subplotPositions, paths, nBoots)
 
 
 %% Pull out data
-ds = 1000*[T.corrRT_uncued T.corrRT_cuedAW T.corrRT_singleStim];
+ds = 1000*[T.corrRT_Uncued T.corrRT_Cued T.corrRT_SingleStim];
 condLabels = {'Uncued','Cued','Single stim'};
 
 nConds = size(ds,2);

@@ -16,6 +16,9 @@
 % 
 % Outputs: 
 % - residuals: a Nx1 vector of residuals from the fitted function
+%
+% By Alex L. White, University of Washington, 2019
+
 
 function [residuals] = FigZ_LapseRateDevelopmentCurve(T, figSize, fontSize, paths, nBoots)
 
@@ -26,7 +29,7 @@ xlims = [ageMin-2 ageMax+2];
 
 
 %% Pull out data
-ds = T.lapseRate;
+ds = T.lambda;
 
 ages = T.age;
 nSubj = length(ages);

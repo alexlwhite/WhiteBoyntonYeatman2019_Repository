@@ -1,6 +1,25 @@
 %% function figh = FigS4A_RT_CueEffectReadGroupBars(T, subplotPositions, paths, nBoots)
+% Make Figure S4A for the supplement White, Boynton & Yeatman (2019)
+% Bar plots for cueing effects on RTs in 2 age groups (younger and older than 20) and
+% 2 reading groups (DYS and CON)
+%
+% Creates just panel of Figure S4, which is finished in another function.
+%
+% Also prints out statistics from LMEs to accompany the bar plots.
+%
+% Inputs :
+% - T: table with information about each subejct and their RTs in
+%   each condition
+% - subplotPositions:  a RxCx4 matrix of subplot coordinates for R rows and
+%   C columns in this figure.
+% - paths: a structure with full directory names for the figure folder
+%   (paths.figs) and stats folder (paths.stats)
+% - nBoots: number of bootstrapping repetitions to do
+%
+% Outputs:
+% - figh: figure handle
 % 
-% 
+% by Alex L. White, University of Washington, 2019
 function figh = FigS4A_RT_CueEffectReadGroupBars(T, subplotPositions, paths, nBoots)
 
 
@@ -9,7 +28,7 @@ eval(sprintf('readScores = T.%s;', readMeasure));
 
 
 %% Pull out data
-ds = 1000*[T.corrRT_uncued T.corrRT_cuedAW];
+ds = 1000*[T.corrRT_Uncued T.corrRT_Cued];
 
 cueLabels = {'Uncued','Cued'};
 

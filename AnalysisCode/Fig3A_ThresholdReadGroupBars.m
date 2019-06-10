@@ -1,5 +1,5 @@
 %% figh = Fig3A_ThresholdReadGroupBars(T, subplotPositions, paths, nBoots)
-% Make Figure #A in White, Boynton & Yeatman (2019)
+% Make Figure 3A in White, Boynton & Yeatman (2019)
 % Bar plots for thresholds in 2 age groups (younger and older than 20) and
 % 2 reading groups (DYS and CON)
 %
@@ -29,7 +29,7 @@ readMeasure = 'twre_pde_ss';
 
 
 %% Pull out data
-ds = [T.uncued T.cuedAW T.singleStim];
+ds = [T.thresh_Uncued T.thresh_Cued T.thresh_SingleStim];
 cueLabels = {'Uncued','Cued','Single stim'};
 
 if log10Dat

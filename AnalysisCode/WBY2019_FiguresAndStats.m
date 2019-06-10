@@ -2,16 +2,17 @@
 % White, Boynton & Yeatman (2019): The link between visual spatial attention and reading ability across development 
 %
 % This script makes each figure and prints out statistical analyses 
-
+% 
+% By Alex L. White, University of Washington, 2019
 clear; close all; 
 
 %% choices 
-nBootstraps = 50; 
+nBootstraps = 5000; 
 fontSize = 11; 
 
 %% set paths and load data 
 
-paths.repo = fileparts(fileparts(which(mfilename))); 
+paths.repo = fileparts(fileparts(which('WBY2019_FiguresAndStats.m'))); 
 addpath(genpath(paths.repo));
 paths.code = fullfile(paths.repo,'AnalysisCode');
 paths.data = fullfile(paths.repo,'Data');
@@ -63,6 +64,8 @@ fig3Handle = Fig3A_ThresholdReadGroupBars(T, subplotPositions, paths, nBootstrap
 %Colums 2-3: residuals of developmental fits to thresholds in individual conditions 
 Fig3BC_ThresholdDevelopmentResiduals(T, thresholdDevConds, fig3Handle, fig3Size, subplotPositions, fontSize, paths)
 
+
+
 %% Figure 4: Cueing effects as a function of reading ability 
 fig4Size = [16 6];
 
@@ -93,6 +96,7 @@ Fig5_ThresholdResidsVsReading_SlidingWindow(T,thresholdDevConds, fig5Size, fontS
 
 
 %% Supplemental data: Lapse rate development
+figSize = [10 10];
 T.lapseDevResiduals = FigZ_LapseRateDevelopmentCurve(T, figSize, fontSize, paths, nBootstraps);
 
 %% Supplemental data: Lapse rate as a fucntion of reading ability 
@@ -119,7 +123,7 @@ figH = FigZ_LapseRateReadGroupBars(T, subplotPositions, paths, nBootstraps);
 FigZ_LapseRateVsReadingROCs(T, figH, subplotPositions, figLSize, fontSize, paths);
 
 
-%% Figure S1: small cue effects
+%% Figure S1: small cue thresholds and ceuing effects
 
 close all;
 

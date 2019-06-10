@@ -1,5 +1,25 @@
 %% function figh = Fig4A_CueEffectReadGroupBars(T, subplotPositions, paths, nBoots)
-
+% Make Figure 4A in White, Boynton & Yeatman (2019)
+% Bar plots for cueing effects on threshold in 2 age groups (younger and older than 20) and
+% 2 reading groups (DYS and CON)
+%
+% Creates just panel of Figure 4, which is finished in another function.
+%
+% Also prints out statistics from LMEs to accompany the bar plots.
+%
+% Inputs :
+% - T: table with information about each subejct and their thresholds in
+%   each condition
+% - subplotPositions:  a RxCx4 matrix of subplot coordinates for R rows and
+%   C columns in this figure.
+% - paths: a structure with full directory names for the figure folder
+%   (paths.figs) and stats folder (paths.stats)
+% - nBoots: number of bootstrapping repetitions to do
+%
+% Outputs:
+% - figh: figure handle
+% 
+% by Alex L. White, University of Washington, 2019
 function figh = Fig4A_CueEffectReadGroupBars(T, subplotPositions, paths, nBoots)
 
 log10Dat = true;
@@ -10,7 +30,8 @@ readMeasureLabel = 'TOWRE PDE';
 
 
 %% Pull out data
-ds = [T.uncued T.cuedAW];
+ds = [T.thresh_Uncued T.thresh_Cued];
+
 if log10Dat
     ds = log10(ds);
 end

@@ -32,7 +32,7 @@ devFitType = 3; % 1=line then flat, 2= two lines joined; 3 =j-shaped function;
 
 
 %% Pull out data
-ds = 1000*[T.corrRT_uncued T.corrRT_cuedAW T.corrRT_singleStim T.corrRT_cuedRH];
+ds = 1000*[T.corrRT_Uncued T.corrRT_Cued T.corrRT_SingleStim T.corrRT_SmallCue];
 condLabels = {'Uncued','Cued','Single Stim.','Small Cue'};
 condLabelShort = {'Uncued','Cued','SingleStim','SmallCue'};
 nCueConds = size(ds,2);
@@ -232,7 +232,7 @@ xlabel('Age');
 ylabel('Mean correct RT (ms)');
 legend(hsr,condLabels(cueCondsToPlot),'Location','NorthEast');
 
-figTitle = 'CorrRT_DevelopCurve.eps';
+figTitle = 'FigS2A_CorrRT_DevelopCurve.eps';
 set(gcf,'color','w','units','centimeters','pos',[5 5 figSize(1) figSize(2)]);
 exportfig(gcf,fullfile(paths.figs,figTitle),'Format','eps','bounds','loose','color','rgb','LockAxes',0,'FontMode','fixed','FontSize',fontSize);
 

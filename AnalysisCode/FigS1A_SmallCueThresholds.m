@@ -1,10 +1,25 @@
 %% function figH = FigS1A_SmallCueThresholds(T, subplotPositions, paths)
+% Make Figure S1A for the supplement to White, Boynton & Yeatman (2019)
+% Individual thresholds in the Small Cue conditon as a function of reading score.  
+% Saves 1 figure and prints statistics to one text file. 
+%
+% Inputs : 
+% - T: table with information about each subject and their thresholds
+% - subplot positions: a RxCx4 matrix of subplot coordinates for this
+%   figure
+% - paths: a structure with full directory names for the figure folder
+%   (paths.figs) and stats folder (paths.stats) 
+% 
+% Outputs: 
+% - figH: handle to this figure, which is completed by another function
+% 
+% by Alex L. White, University of Washington, 2019
 % 
 function figH = FigS1A_SmallCueThresholds(T, subplotPositions, paths)
 
 
 %% extract data
-thresholds = T.cuedRH;
+thresholds = T.thresh_SmallCue;
 log10Threshs = true;
 if log10Threshs
     thresholds = log10(thresholds);

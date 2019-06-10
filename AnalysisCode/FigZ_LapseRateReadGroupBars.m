@@ -26,7 +26,7 @@ statType = 'mean';
 eval(sprintf('summaryStat = @%s;', statType));
 
 %% Pull out data
-ds = T.lapseRate;
+ds = T.lambda;
 
 ages = T.age;
 
@@ -153,7 +153,7 @@ readSubst = ~strcmp(T.readingGroup,'Neither');
 
 fprintf(1,'\nEXCLUDING %i PARTICIPANTS WHO ARENT CATEGORIZED AS DYSLEXIC OR TYPICAL\n', sum(~readSubst));
 
-eqtn = 'lapseRate ~ ageGroupLabel*readingGroup + adhdYesNo + wasiMatrixReasoningTScore';
+eqtn = 'lambda ~ ageGroupLabel*readingGroup + adhdYesNo + wasiMatrixReasoningTScore';
 
 lme = fitlme(T(readSubst,:), eqtn, 'DummyVarCoding','effects');
 display(lme);
@@ -169,7 +169,7 @@ for aii=1:length(ageGroupsToPlot)
     
     ageSubst = strcmp(T.ageGroupLabel,ageLabs{ai});
     
-    eqtn = 'lapseRate ~ readingGroup + adhdYesNo + wasiMatrixReasoningTScore';
+    eqtn = 'lambda ~ readingGroup + adhdYesNo + wasiMatrixReasoningTScore';
     
     
     lme = fitlme(T(ageSubst & readSubst,:), eqtn, 'DummyVarCoding','effects');

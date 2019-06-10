@@ -1,3 +1,24 @@
+%% function Fig5_ThresholdResidsVsReading_SlidingWindow(T, condLabels, figSize, fontSize, paths)
+% Makes Figure 5 in White, Boynton & Yeatman (2019)
+% This analyzes the association between reading ability and task
+% performance (Cued and Uncued thresholds, and the cueing effect on
+% thresholds) in a sliding window across the age range. At each step, the
+% window includes 1/3 of the sample. Within each window we compute the
+% correlation, the linear slope, and the area under the ROC curve. Each of
+% those is in a different panel, plotted as a function of the median age in
+% the window. 
+%
+% Inputs: 
+% - T: table with information about each subject and their thresholds.
+% - condLabels: cell array of labels of each condition for which we have
+%   residuals. 
+% - figSize: [width height] of the figure to be saved, in cm
+% - fontSize: size of the figure's font
+% - paths: a structure with full directory names for the figure folder
+%   (paths.figs) and stats folder (paths.stats) 
+%
+% % By Alex L. White, University of Washington, 2019
+
 function Fig5_ThresholdResidsVsReading_SlidingWindow(T, condLabels, figSize, fontSize, paths)
 
 close all;

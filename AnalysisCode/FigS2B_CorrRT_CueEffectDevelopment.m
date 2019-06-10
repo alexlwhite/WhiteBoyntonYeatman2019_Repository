@@ -1,6 +1,24 @@
-%% plot development of cueing effect, and do stats on slope
-% also, evaluate how reading ability affects the residuals of the piecewise linear model for cueing effect
-% as a function of age.
+%% function residuals = FigS2B_CorrRT_CueEffectDevelopment(T, figSize, fontSize, paths, nBoots)
+% Make Figure S2B for the supplement to White, Boynton & Yeatman (2019)
+% Individual cueing effects on mean correct RTs as a function of age in each condition, with a
+% piecewise linear model of development.
+% Saves 1 figure and prints statistics to one text file.
+%
+% Inputs :
+% - T: table with information about each subejct and their thresholds in
+%   each condition
+% - figSize: a 2x1 vector of figure size in cm
+% - fontSize: size of the font in the fiture
+% - paths: a structure with full directory names for the figure folder
+%   (paths.figs) and stats folder (paths.stats)
+% - nBoots: number of bootstrapping repetitions to do
+%
+% Outputs:
+% - residuals: a Nx1 matrix of residuals from the fitted function, for each
+%   of N subjects
+% 
+% % By Alex L. White, University of Washington, 2019
+
 function residuals = FigS2B_CorrRT_CueEffectDevelopment(T, figSize, fontSize, paths, nBoots)
 
 ageMin = floor(min(T.age));
@@ -15,13 +33,12 @@ fitColr = effectColr*0.8;
 typFillColr = effectColr;
 bothColrs = cat(3,ones(size(effectColr)), typFillColr);
 neitherFillColr = mean(bothColrs,3);
-dysFillColr = ones(size(effectColr)); %mean(cat(3,ones(size(effectColr)), neitherFillColr),3);
-
+dysFillColr = ones(size(effectColr));  
 
 datMarkSz = 4;
 
 %% Pull out data
-ds = 1000*[T.corrRT_uncued T.corrRT_cuedAW];
+ds = 1000*[T.corrRT_Uncued T.corrRT_Cued];
 cueLabels = {'Uncued','Cued'};
 effects = ds(:,1) - ds(:,2);
 
@@ -141,7 +158,7 @@ title(plotTitle);
 set(gca,'TitleFontWeight','normal','TitleFontSizeMultiplier',1.0);
 
 set(gcf,'color','w','units','centimeters','pos',[5 5 figSize]);
-figTitle = sprintf('RT_CueEffectDevelopment.eps');
+figTitle = sprintf('FigS2B_RT_CueEffectDevelopment.eps');
 
 exportfig(gcf,fullfile(paths.figs,figTitle),'Format','eps','bounds','loose','color','rgb','LockAxes',0,'FontMode','fixed','FontSize',fontSize);
 

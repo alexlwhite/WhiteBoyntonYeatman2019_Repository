@@ -1,23 +1,25 @@
-%% function [residuals, condLabelShort] = Fig2B_ThresholdCueEffectDevelopmentCurve(T, figSize, fontSize, paths, nBoots)
+%% function residuals = Fig2B_ThresholdCueEffectDevelopmentCurve(T, figSize, fontSize, paths, nBoots)
 % Make Figure 2B in White, Boynton & Yeatman (2019)
 % Individual cueing effects on thresholds as a function of age in each condition, with a
 % piecewise linear model of development.
 % Saves 1 figure and prints statistics to one text file.
 %
 % Inputs :
-% - T: table with informaiton about each subejct and their thresholds in
+% - T: table with information about each subejct and their thresholds in
 %   each condition
 % - figSize: a 2x1 vector of figure size in cm
 % - fontSize: size of the font in the fiture
 % - paths: a structure with full directory names for the figure folder
 %   (paths.figs) and stats folder (paths.stats)
-% - nBootss: number of bootstrapping repetitions to do
+% - nBoots: number of bootstrapping repetitions to do
 %
 % Outputs:
 % - residuals: a Nx1 matrix of residuals from the fitted function, for each
 %   of N subjects
+% 
+% % By Alex L. White, University of Washington, 2019
 
-function [residuals] = Fig2B_ThresholdCueEffectDevelopmentCurve(T, figSize, fontSize, paths, nBoots)
+function residuals = Fig2B_ThresholdCueEffectDevelopmentCurve(T, figSize, fontSize, paths, nBoots)
 
 
 log10Dat = true;
@@ -31,7 +33,7 @@ ylims = [-1.0 1.0];
 datMarkSz = 4;
 
 %% Pull out data
-ds = [T.uncued T.cuedAW];
+ds = [T.thresh_Uncued T.thresh_Cued];
 cueLabels = {'Uncued','Cued'};
 
 ages = T.age;
@@ -216,7 +218,7 @@ linearParamNames = {'slope','intercept'};
 for pi=1:2
     fprintf(statsF,'\n\n%s\n', linearParamNames{pi});
     fprintf(statsF,'\nBestFit\t booted95%%CI\t\n');
-    fprintf(statsF,'%.4f\t [%.4f %.4f]\t [%.4f %.4f]\t', linearFitParams(pi), bootLinear95CIs(pi,1), bootLinear95CIs(pi,2));
+    fprintf(statsF,'%.4f\t [%.4f %.4f]\t', linearFitParams(pi), bootLinear95CIs(pi,1), bootLinear95CIs(pi,2));
     fprintf(statsF,'\n');
 end
 
