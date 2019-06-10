@@ -7,7 +7,7 @@
 clear; close all; 
 
 %% choices 
-nBootstraps = 5000; 
+nBootstraps = 1000; 
 fontSize = 11; 
 
 %% set paths and load data 

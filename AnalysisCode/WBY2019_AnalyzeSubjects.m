@@ -27,11 +27,13 @@ if ~isdir(paths.figs), mkdir(paths.figs); end
 
 tableFile = fullfile(paths.data,'SubjectInfoTable.mat');
 load(tableFile);
+nSubj = size(T,1);
 
 %% analyze each subject's data
 
-propTooSlow = NaN(size(T,1),1); 
-accTooSlow = NaN(size(T,1),1);
+propTooSlow = NaN(nSubj,1); 
+accTooSlow = NaN(nSubj,1);
+T.lambda  = NaN(nSubj,1);
 for si=1:size(T,1)
     %load in the text file with information about each trial
     subj = T.IDs{si};
@@ -40,12 +42,17 @@ for si=1:size(T,1)
     
     %analyze the data
     r = analyzeSubject(d);
-    
-    %add this subject's results to the big table 
-    
-    %thresholds and RTs in each condition: 
+        
+    %add results to the big table T, starting with thresholds and RTs in each condition: 
     for ci=1:length(r.condLabels)
         thisCond = r.condLabels{ci};
+        
+        %initalize the columns in the table on 1st subject
+        if si==1
+             eval(sprintf('T.thresh_%s = NaN(nSubj,1);', thisCond));
+             eval(sprintf('T.corrRT_%s = NaN(nSubj,1);', thisCond));
+        end
+        
         eval(sprintf('T.thresh_%s(si) = r.thresh_%s;', thisCond, thisCond));
         eval(sprintf('T.corrRT_%s(si) = r.corrRT_%s;', thisCond, thisCond));
     end
@@ -55,6 +62,7 @@ for si=1:size(T,1)
 
     %also compute proportion of trials excluded for responses too slow
     propTooSlow(si) = r.propTrialsTooSlow; 
+    
     %and accuracy on those excluded trials
     accTooSlow(si) = r.pcTooSlow;
 end
