@@ -43,14 +43,14 @@ cw = (pmax-pmin)/(nc-3);
 %monotonically increase 
 %Also, Add one c above the max p, and one below the min p, so that HR and FAR
 %both to to 0 and 1 at the extremes 
-cs = (pmax+cw):(-cw):(pmin-cw);  
+cs=linspace((pmax+cw),(pmin-cw), nc);
 
 %Compute hit and false alarm rates for each c
 HRs = zeros(1,nc);
 FARs = zeros(1,nc); 
 
 for ci = 1:nc
-    HRs(ci) = mean(p(s==1)>cs(ci)); 
+    HRs(ci) = mean(p(s==1)>cs(ci));
     FARs(ci) = mean(p(s==0)>cs(ci)); 
 end
 
