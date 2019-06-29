@@ -42,7 +42,8 @@ goodTrials=find(d.trialDone & ~d.pressedQuit & ~d.responseTimeout);
 d.RT = d.tRes - d.tGaborsOns;
 
 %Filter out too slow trials
-r.tooSlowCutoff = median(d.RT(goodTrials))+4*std(d.RT(goodTrials));
+RT_SDCutoff = inf;
+r.tooSlowCutoff = median(d.RT(goodTrials))+RT_SDCutoff*std(d.RT(goodTrials));
 r.numTrialsTooSlow = sum(d.RT>=r.tooSlowCutoff);
 r.propTrialsTooSlow = r.numTrialsTooSlow/length(d.RT);
 r.pcTooSlow = nanmean(d.respCorrect(d.RT>=r.tooSlowCutoff));
@@ -54,7 +55,6 @@ goodTrials = intersect(goodTrials, find(d.dateNum==1));
 
 
 %% Label the  conditions:
-
 conds = 0:3;
 nConds = length(conds);
 condLabels = cell(1,nConds);
@@ -100,9 +100,19 @@ for ci=1:nConds
         subRes=analyzeTrials(d(theseTrials,:), psychFun, maxLapse, fixedLapse, fixedSlope, nFitGoodnessSim);
         eval(sprintf('r.thresh_%s = subRes.fitThreshold;', thisCond)); 
         eval(sprintf('r.corrRT_%s = subRes.meanCorrRT;', thisCond));
+        
+        %also determine whether performance was above chance on these trials
+        ncs = sum(d.respCorrect(theseTrials));
+        nts = length(theseTrials);
+        [~,dCI] = binofit(ncs,nts,0.05);
+        eval(sprintf('r.aboveChance_%s = dCI(1)>0.5;', thisCond));
     else
         eval(sprintf('r.thresh_%s = NaN;', thisCond)); 
         eval(sprintf('r.corrRT_%s = NaN;', thisCond));
+        %if subject doesnt have this condition, set aboveChance to true (so
+        %this subject isnt excluded for that criterion)
+        eval(sprintf('r.aboveChance_%s = true;', thisCond));
+
     end
 end
 
