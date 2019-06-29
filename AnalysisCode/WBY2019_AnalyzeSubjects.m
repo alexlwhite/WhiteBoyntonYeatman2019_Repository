@@ -1,16 +1,28 @@
 %% All subject analysis script for:
-% White, Boynton & Yeatman (2019): The link between visual spatial attention and reading ability across development 
+% White, Boynton & Yeatman (2019): The link between visual spatial attention and reading ability across development
 %
 % This script analyzes each subject and creates a big table with all their
-% results. It also sorts them into groups by reading ability. 
-% 
+% results. It also sorts them into groups by reading ability.
+%
 % It calls analyzeSubject to fit psychometric functions for each
-% participant. That requires the Palamedes toolbox (http://www.palamedestoolbox.org/) 
-% 
+% participant. That requires the Palamedes toolbox (http://www.palamedestoolbox.org/)
+%
 % % By Alex L. White, University of Washington, 2019
 
+%This needs to be cleaned up for new QC protocol. get rid of code for
+%low response exclusion? 
 
-clear; close all; 
+clear; close all;
+
+%% wheher to exclude subjects or individual conditions based on performance not above chance: 
+dataQualityControl = 1;
+QCLabels = {'NoExcl','ExcludeBadThreshs','ExcludeBadSubjs'};
+QCLabel = QCLabels{dataQualityControl};
+
+%% which reading ability measure to use 
+%the TOWRE phonemic decoding efficiency scaled score:
+readMeasure = 'twre_pde_ss';
+
 
 %% load table with subject info (demographics, test scores, etc)
 
@@ -22,59 +34,92 @@ paths.data = fullfile(paths.repo,'Data');
 paths.stats = fullfile(paths.repo,'Stats');
 paths.figs = fullfile(paths.repo,'Figures');
 
+    
+
 if ~isdir(paths.stats), mkdir(paths.stats); end
 if ~isdir(paths.figs), mkdir(paths.figs); end
 
 tableFile = fullfile(paths.data,'SubjectInfoTable.mat');
+
 load(tableFile);
 nSubj = size(T,1);
 
+
 %% analyze each subject's data
 
-propTooSlow = NaN(nSubj,1); 
+propTooSlow = NaN(nSubj,1);
 accTooSlow = NaN(nSubj,1);
 T.lambda  = NaN(nSubj,1);
+
+
 for si=1:size(T,1)
     %load in the text file with information about each trial
     subj = T.IDs{si};
     subjFile = fullfile(paths.data, 'indiv', sprintf('%sAllDat.txt', subj));
     d = readtable(subjFile);
+    %note: this prints a warning about variable names being modified,
+    %because one column in the AllDat text file is call "catch", which
+    %is also a Matlab term. it gets changed to xCatch. Not a problem.
     
     %analyze the data
     r = analyzeSubject(d);
-        
-    %add results to the big table T, starting with thresholds and RTs in each condition: 
+    
+    %add results to the big table T, starting with thresholds and RTs in each condition:
     for ci=1:length(r.condLabels)
         thisCond = r.condLabels{ci};
         
         %initalize the columns in the table on 1st subject
         if si==1
-             eval(sprintf('T.thresh_%s = NaN(nSubj,1);', thisCond));
-             eval(sprintf('T.corrRT_%s = NaN(nSubj,1);', thisCond));
+            eval(sprintf('T.thresh_%s = NaN(nSubj,1);', thisCond));
+            eval(sprintf('T.corrRT_%s = NaN(nSubj,1);', thisCond));
+            eval(sprintf('T.aboveChance_%s = NaN(nSubj,1);', thisCond));
         end
         
         eval(sprintf('T.thresh_%s(si) = r.thresh_%s;', thisCond, thisCond));
         eval(sprintf('T.corrRT_%s(si) = r.corrRT_%s;', thisCond, thisCond));
+        eval(sprintf('T.aboveChance_%s(si) = r.aboveChance_%s;', thisCond, thisCond));
+        
     end
     
     %lapse rate parameter:
     T.lambda(si) = r.lambda;
-
+    
     %also compute proportion of trials excluded for responses too slow
-    propTooSlow(si) = r.propTrialsTooSlow; 
+    propTooSlow(si) = r.propTrialsTooSlow;
     
     %and accuracy on those excluded trials
     accTooSlow(si) = r.pcTooSlow;
 end
 
-fprintf(1,'\nMean (SEM) percent trials with responses >4SDs over the subject''s median: %.3f (%.3f)\n', mean(100*propTooSlow), standardError(100*propTooSlow,1));
-fprintf(1,'\nMean (SEM) p(correct) on trials with responses >4SDs over the subject''s median: %.3f (%.3f)\n', mean(accTooSlow), standardError(accTooSlow,1));
+%% exclude any data? 
+includeSubjs = true(nSubj,1);
+aboveChance = [T.aboveChance_Uncued T.aboveChance_Cued T.aboveChance_SingleStim T.aboveChance_SmallCue];
+
+if dataQualityControl==2
+    %set individual bad thresholds (in conditions in which an
+    %individual failed to perform above chance) to NaN:
+    for ci=1:length(r.condLabels)
+        thisCond = r.condLabels{ci};
+        eval(sprintf('T.thresh_%s(~T.aboveChance_%s) = NaN;', thisCond, thisCond));
+    end
+    
+    %how many subjects did that affect? how many conditions?
+    nSubjWithBadThreshs = sum(any(~aboveChance,2),1);
+    nBadThreshsPerCond = sum(~aboveChance,1);
+    
+elseif dataQualityControl==3
+    %exclude participants who failed to perform above chance in all conditions
+    includeSubjs = all(aboveChance, 2);
+    excludedSubjects = T.IDs(~includeSubjs);
+    T = T(includeSubjs,:);
+end
+
+
+fprintf(1,'\nMean (SEM) percent trials with responses >4SDs over the subject''s median: %.3f (%.3f)\n', mean(100*propTooSlow(includeSubjs)), standardError(100*propTooSlow(includeSubjs),1));
+fprintf(1,'\nMean (SEM) p(correct) on trials with responses >4SDs over the subject''s median: %.3f (%.3f)\n', mean(accTooSlow(includeSubjs)), standardError(accTooSlow(includeSubjs),1));
 
 %% Sort subjects into groups based on reading ability (DYS, CON, or neither)
 
-%which reading ability measure to use: 
-%the TOWRE phonemic decoding efficiency scaled score:
-readMeasure = 'twre_pde_ss';
 %cutoff for being dyslexic:
 readingCutoff = 85;
 
@@ -93,15 +138,39 @@ T.readingGroup(isControl) = {'Typical'};
 T.readingGroup(~isControl & ~isDyslexic) = {'Neither'};
 
 %% save table
-tableName = fullfile(paths.data, 'AllSubjectResultsTable.mat');
+if strcmp(readMeasure, 'twre_swe_ss')
+    tableName = fullfile(paths.data, sprintf('AllSubjectResultsTable%s_SWE.mat',QCLabel));
+else
+    tableName = fullfile(paths.data, sprintf('AllSubjectResultsTable%s.mat',QCLabel));
+end
 save(tableName,'T','tableNotes');
 
 
 %% Print out group demographics and run some comparisons
-statsFile = fullfile(paths.stats,'GroupDemograpics.txt');
+if strcmp(readMeasure, 'twre_swe_ss')
+    statsFile = fullfile(paths.stats,sprintf('GroupDemograpics%s_SWE.txt',QCLabel));
+else
+    statsFile = fullfile(paths.stats,sprintf('GroupDemograpics%s.txt',QCLabel));
+end
 f = fopen(statsFile,'w');
 
 fprintf(f,'Group demographics in Cueing experiment\n');
+
+
+if dataQualityControl==3
+    fprintf(f,'\nExcluding %i participants who''s performance was not above chance in at least one condition.\n\n', length(excludedSubjects));
+elseif dataQualityControl == 2
+    fprintf(f,'\nExcluding %i individual thresholds from %i participants due to accuracy not being above chance.\n', sum(nBadThreshsPerCond), nSubjWithBadThreshs);
+    fprintf(f,'\nNumber of bad thresholds in each condition:\n');
+    for ci=1:length(r.condLabels)
+        thisCond = r.condLabels{ci};
+        fprintf(f,'\n\t%s \t%i', thisCond, nBadThreshsPerCond(ci));
+    end
+    fprintf(f,'\n\n');
+elseif dataQualityControl==1
+   fprintf(f,'\nNot excluding any subjects or conditions on the basis of bad performance.\n\n'); 
+end
+
 fprintf(f,'Dyslexic definition:\t%s', tableNotes.dyslexicDefinition);
 fprintf(f,'\n''Typical'' definition:\t%s\n', tableNotes.typicalDefinition);
 
