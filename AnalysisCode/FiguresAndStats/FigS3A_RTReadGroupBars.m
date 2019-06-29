@@ -1,4 +1,4 @@
-%% figh = FigS3A_RTReadGroupBars(T, subplotPositions, paths, nBoots)
+%% figh = FigS3A_RTReadGroupBars(T, subplotPositions, opt)
 % Make Figure S3A in White, Boynton & Yeatman (2019)
 % Bar plots for meanCorrRTs in 2 age groups (younger and older than 20) and
 % 2 reading groups (DYS and CON)
@@ -12,16 +12,17 @@
 %   each condition
 % - subplotPositions:  a RxCx4 matrix of subplot coordinates for R rows and
 %   C columns in this figure.
-% - paths: a structure with full directory names for the figure folder
-%   (paths.figs) and stats folder (paths.stats)
-% - nBoots: number of bootstrapping repetitions to do
+% - opt: structure with fields: 
+%    - paths: a structure with full directory names for the figure folder
+%     (opt.paths.figs) and stats folder (opt.paths.stats)
+%    - nBootstraps: number of bootstrapping repetitions to do
 %
 % Outputs:
 % - figh: figure handle
 % 
 % by Alex L. White, University of Washington, 2019
 
-function figh = FigS3A_RTReadGroupBars(T, subplotPositions, paths, nBoots)
+function figh = FigS3A_RTReadGroupBars(T, subplotPositions, opt)
 
 
 
@@ -41,9 +42,6 @@ nReadGroups = length(readLabs);
 [T, ageLabs] = assignTwoAgeGroups(T);
 nAgeGroups = numel(ageLabs);
 
-readMeasure = 'twre_pde_ss';
-eval(sprintf('readScores = T.%s;', readMeasure));
-
 %% Compute statistics in each age and reading ability group, and build up a table for LME analysis
 
 CIRange = 68.27;
@@ -55,7 +53,7 @@ cis = NaN(nAgeGroups, nReadGroups, nConds, 2);
 
 Ns = NaN(nAgeGroups, nReadGroups);
 
-readScoresNormed = readScores - nanmean(readScores);
+readScoresNormed = T.readScores - nanmean(T.readScores);
 
 thisAgeGroupAgeNormed = NaN(size(ages)); %just with the mean subtracted out
 thisAgeGroupWasiNormed = NaN(size(ages));
@@ -80,7 +78,7 @@ for ai = 1:nAgeGroups
             ss = ageS & readS & ~isnan(ds(:,ci));
             if sum(ss)>1
                 ms(ai,ri,ci) = mean(ds(ss, ci));
-                cis(ai,ri,ci,:) = boyntonBootstrap(@mean, ds(ss, ci), nBoots, CIRange, bootstrapBCACorrection);
+                cis(ai,ri,ci,:) = boyntonBootstrap(@mean, ds(ss, ci), opt.nBootstraps, CIRange, bootstrapBCACorrection);
             end
         end
     end
@@ -92,23 +90,23 @@ end
 ageGroupsToPlot = 1:nAgeGroups;
 readGroupsToPlot = find(~strcmp(readLabs,'Neither'));
 condsToPlot = 1:nConds;
-opt.barWidth = 0.1;
-opt.edgeLineWidth = 1;
-opt.errorBarWidth = 1;
-opt.level1Sep = 0.25;
-opt.level2Sep = 0.15;
-opt.xAxisMargin = 0.15;
-opt.xTickLabs = ageLabs(ageGroupsToPlot);
+plotOpt.barWidth = 0.1;
+plotOpt.edgeLineWidth = 1;
+plotOpt.errorBarWidth = 1;
+plotOpt.level1Sep = 0.25;
+plotOpt.level2Sep = 0.15;
+plotOpt.xAxisMargin = 0.15;
+plotOpt.xTickLabs = ageLabs(ageGroupsToPlot);
 
-opt.ylims = [0 1000];
+plotOpt.ylims = [0 1000];
 
-opt.yLab = 'mean correct RT (ms)';
-opt.legendLabs = readLabs(readGroupsToPlot);
-opt.legendLabs(strcmp(opt.legendLabs,'Dyslexic')) = {'DYS'};
-opt.legendLabs(strcmp(opt.legendLabs,'Typical')) = {'CON'};
+plotOpt.yLab = 'mean correct RT (ms)';
+plotOpt.legendLabs = readLabs(readGroupsToPlot);
+plotOpt.legendLabs(strcmp(plotOpt.legendLabs,'Dyslexic')) = {'DYS'};
+plotOpt.legendLabs(strcmp(plotOpt.legendLabs,'Typical')) = {'CON'};
 
-opt.legendLoc = 'NorthEast';
-opt.lev1ForLegend = 1;
+plotOpt.legendLoc = 'NorthEast';
+plotOpt.lev1ForLegend = 1;
 
 %colors for each condition:
 cueHues = [0.6 0.4 0.12];
@@ -134,7 +132,7 @@ figh = figure;
 for ii = 1:length(condsToPlot)
     cueI = condsToPlot(ii);
     
-    opt.doLegend = ii==1;
+    plotOpt.doLegend = ii==1;
     
     %subI = (ii-1)*nCols+1;
     %subplot(nRows,nCols,subI);
@@ -147,17 +145,17 @@ for ii = 1:length(condsToPlot)
     cisToPlot = squeeze(cis(ageGroupsToPlot,readGroupsToPlot,cueI,:));
     
     
-    opt.fillColors = zeros(length(ageGroupsToPlot), length(readGroupsToPlot), 3);
-    opt.edgeColors = zeros(length(ageGroupsToPlot), length(readGroupsToPlot), 3);
-    opt.errorBarColors = zeros(length(ageGroupsToPlot), length(readGroupsToPlot), 3);
+    plotOpt.fillColors = zeros(length(ageGroupsToPlot), length(readGroupsToPlot), 3);
+    plotOpt.edgeColors = zeros(length(ageGroupsToPlot), length(readGroupsToPlot), 3);
+    plotOpt.errorBarColors = zeros(length(ageGroupsToPlot), length(readGroupsToPlot), 3);
     
     for agi=1:length(ageGroupsToPlot)
-        opt.fillColors(agi,:,:) = squeeze(fillColors(:,cueI,:));
-        opt.edgeColors(agi,:,:) = squeeze(edgeColors(:,cueI,:));
-        opt.errorBarColors(agi,:,:) = squeeze(errorBarColors(:,cueI,:));
+        plotOpt.fillColors(agi,:,:) = squeeze(fillColors(:,cueI,:));
+        plotOpt.edgeColors(agi,:,:) = squeeze(edgeColors(:,cueI,:));
+        plotOpt.errorBarColors(agi,:,:) = squeeze(errorBarColors(:,cueI,:));
     end
     
-    barPlot_AW(datsToPlot, cisToPlot, opt);
+    barPlot_AW(datsToPlot, cisToPlot, plotOpt);
     
    
     if ii==length(condsToPlot)
@@ -171,11 +169,11 @@ end
 %% run LME and print stats
 
 
-statsFile = fullfile(paths.stats,'StatsS3A_RTsByAgeGroup_ReadGroup_AndCond.txt');
+statsFile = fullfile(opt.paths.stats,'StatsS3A_RTsByAgeGroup_ReadGroup_AndCond.txt');
 diary(statsFile);
 statsF = fopen(statsFile,'w');
 
-fprintf(1,'Reading score: %s\n', readMeasure);
+fprintf(1,'Reading score: %s\n', opt.readMeasureLabel);
 
 
 fprintf(1,'\n');
@@ -220,7 +218,7 @@ for si=1:nSubj
     ageGroup(sRows) = ageLabs(T.ageGroup(si));
     subject(sRows) = si;
     age(sRows) = ages(si);
-    readScore(sRows) = readScores(si);
+    readScore(sRows) = T.readScores(si);
     readScoreNormed(sRows) = readScoresNormed(si);
     readGroup(sRows) = T.readingGroup(si);
     

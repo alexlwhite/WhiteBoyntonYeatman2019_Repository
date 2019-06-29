@@ -1,4 +1,4 @@
-%% function FigS1B_SmallCueEffects(T, figH, subplotPositions, figSize, fontSize, paths)
+%% function FigS1B_SmallCueEffects(T, figH, subplotPositions, figSize, opt)
 % % Makes Figure S1B for the supplement to White, Boynton & Yeatman (2019)
 % This function plots cueing effects as a function of reading ability, and then
 % ROC anlaysis comparing the DYS and CON groups. 
@@ -12,29 +12,27 @@
 % - subplotPositions: matrix of coordinates of the subplots, by row and
 %   column. 
 % - figSize: [width height] of the figure to be saved, in cm
-% - fontSize: size of the figure's font
-% - paths: a structure with full directory names for the figure folder
-%   (paths.figs) and stats folder (paths.stats) 
+% - opt: structure with fields: 
+%   - fontSize: size of the figure's font
+%   - opt.paths: a structure with full directory names for the figure folder
+%    (opt.paths.figs) and stats folder (opt.paths.stats) 
 % 
 % 
 % By Alex L. White, University of Washington, 2019
-function FigS1B_SmallCueEffects(T, figH, subplotPositions, figSize, fontSize, paths)
+function FigS1B_SmallCueEffects(T, figH, subplotPositions, figSize, opt)
 
 threshs = [T.thresh_SmallCue T.thresh_Uncued];
 threshs = log10(threshs);
 
 allEffects = diff(threshs,1,2);
 
-readMeasure =  'twre_pde_ss';
-readMeasureLabel = 'TOWRE PDE';
-eval(sprintf('readScores = T.%s;', readMeasure));
 
 %only take subjects over 14
 ageMin = 14;
 
 ageS = T.age>=ageMin;
 ages = T.age(ageS);
-readScores = readScores(ageS);
+readScores = T.readScores(ageS);
 readGroups = T.readingGroup(ageS);
 
 effects = allEffects(ageS);
@@ -56,7 +54,7 @@ bothColrs = cat(3,dysFillColr, typFillColr);
 neitherFillColr = mean(bothColrs,3);
 
 %% print stats
-statsF = fopen(fullfile(paths.stats,'Stats_S1B_SmallCueEffectVsReadingAbility.txt'),'w');
+statsF = fopen(fullfile(opt.paths.stats,'Stats_S1B_SmallCueEffectVsReadingAbility.txt'),'w');
 fprintf(statsF,'STATS ON DEVELOPMENTAL EFFECT ON Uncued-SmallCue Effect on Threshold IN CUEDL1\n');
 
 
@@ -101,7 +99,7 @@ end
 xlim(xlims); ylim(ylims);
 set(gca,'XTick',60:20:xlims(2),'YTick',-0.25:0.25:1);
 
-xlabel(readMeasureLabel);
+xlabel(opt.readMeasureLabel);
 ylabel('\Delta Log threshold');
 
 [corrRho, corrP] = corr(readScoresToCorr, effectsToCorr);
@@ -146,26 +144,26 @@ hold on;
 
 bothRes = {dysRes, typRes};
 
-opt.midlineX = 0;
-opt.labelXVals    = false;
-opt.doXLabel      = true;
-opt.doLegend      = false;
-opt.legendLabs    = {'DYS','CON'};
-opt.legendLoc     = 'NorthEast';
-opt.fillColors    = [1 1 1; effectColr];
-opt.edgeColors    = [effectColr; effectColr];
-opt.meanColors    = [effectColr; 1 1 1];
-opt.fillLineWidth = 1.5;
-opt.meanLineWidth = 2;
-opt.plotMean      = true;
+plotOpt.midlineX = 0;
+plotOpt.labelXVals    = false;
+plotOpt.doXLabel      = true;
+plotOpt.doLegend      = false;
+plotOpt.legendLabs    = {'DYS','CON'};
+plotOpt.legendLoc     = 'NorthEast';
+plotOpt.fillColors    = [1 1 1; effectColr];
+plotOpt.edgeColors    = [effectColr; effectColr];
+plotOpt.meanColors    = [effectColr; 1 1 1];
+plotOpt.fillLineWidth = 1.5;
+plotOpt.meanLineWidth = 2;
+plotOpt.plotMean      = true;
 
 %how to set kerney density
-opt.fixKernelWidth = true;
-opt.fixedKernelWidth = 0.06;
+plotOpt.fixKernelWidth = true;
+plotOpt.fixedKernelWidth = 0.06;
 %if not fixed, set the proportion by which to multiply the average of what ksdensity is the optimal kernel widths
-opt.kernelWidthFactor = 0.6;
+plotOpt.kernelWidthFactor = 0.6;
 
-kernelWidth = pairedSampleDensityPlot(bothRes, opt);
+kernelWidth = pairedSampleDensityPlot(bothRes, plotOpt);
 
 ylim(ylims);
 set(gca,'YTickLabel',{});
@@ -185,7 +183,7 @@ end
 fprintf(statsF,'\n\n--------------------------------------------------------------\n');
 fprintf(statsF,'RELATIONSHIP BETWEEN READING ABILITY AND THE *SMALL* CUE - UNCUED EFFECT\n');
 fprintf(statsF,'--------------------------------------------------------------\n');
-fprintf(statsF,'Correlation between effects and %s: rho = %.3f, p=%.3f\n', readMeasure, corrRho, corrP);
+fprintf(statsF,'Correlation between effects and %s: rho = %.3f, p=%.3f\n', opt.readMeasureLabel, corrRho, corrP);
 
 fprintf(statsF,'\nThen, dividing into Dyslexic vs Typical readers, comparing the effets:\n');
 fprintf(statsF,'\nDyslexics: mean effect = %.4f, median = %.4f, SEM = %.3f', nanmean(dysRes), nanmedian(dysRes), standardError(dysRes'));
@@ -221,7 +219,7 @@ end
 fprintf(statsF,'\nROC analysis: Area Under Curve = %.3f, permutation 95%%CI = [%.3f %.3f], p=%.4f\n', Ag, nullAgCI(1), nullAgCI(2), nullAgP);
 fprintf(statsF,'\tSmoothing kernel width: %.3f',kernelWidth);
 
-fprintf(statsF,'\nThen a similar analysis with reading score (%s) as a continuous measure on all subjects:\n', readMeasure);
+fprintf(statsF,'\nThen a similar analysis with reading score (%s) as a continuous measure on all subjects:\n', opt.readMeasureLabel);
 
 eqtn2 = 'effect ~ readingScore + ageNormed + adhd + wasiMatrixNormed';
 
@@ -246,6 +244,6 @@ plot(rT.readingScore, readScorePred,'-','Color', effectColr*0.75);
 set(gcf,'color','w','units','centimeters','pos',[5 5 figSize]);
 figTitle = 'FigS1_SmallCueThresholds.eps';
 
-exportfig(gcf,fullfile(paths.figs,figTitle),'Format','eps','bounds','loose','color','rgb','LockAxes',0,'FontMode','fixed','FontSize',fontSize);
+exportfig(gcf,fullfile(opt.paths.figs,figTitle),'Format','eps','bounds','loose','color','rgb','LockAxes',0,'FontMode','fixed','FontSize',opt.fontSize);
 
 

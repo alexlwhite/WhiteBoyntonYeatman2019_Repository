@@ -1,4 +1,4 @@
-%% function [residuals, condLabelShort] = Fig2A_ThresholdDevelopmentCurve(T, figSize, fontSize, paths, nBoots)
+%% function [residuals, condLabelShort] = Fig2A_ThresholdDevelopmentCurve(T, figSize, opt)
 % Make Figure 2A in White, Boynton & Yeatman (2019)
 % Individual thresholds as a function of age in each condition, with a
 % piecewise linear model of development. 
@@ -8,10 +8,11 @@
 % - T: table with information about each subject and their thresholds in
 %   each condition 
 % - figSize: a 2x1 vector of figure size in cm 
-% - fontSize: size of the font in the figure 
-% - paths: a structure with full directory names for the figure folder
+% - opt: structure with fields: 
+%   - fontSize: size of the font in the figure 
+%   - paths: a structure with full directory names for the figure folder
 %   (paths.figs) and stats folder (paths.stats) 
-% - nBoots: number of bootstrapping repetitions to do
+%   - nBootstraps: number of bootstrapping repetitions to do
 % 
 % Outputs: 
 % - residuals: a Nx3 matrix of residuals from the fitted functions and each
@@ -20,7 +21,7 @@
 % 
 % by Alex L. White, University of Washington, 2019
 
-function [residuals, condLabelShort] = Fig2A_ThresholdDevelopmentCurve(T, figSize, fontSize, paths, nBoots)
+function [residuals, condLabelShort] = Fig2A_ThresholdDevelopmentCurve(T, figSize, opt)
 
 log10Dat = true;
 
@@ -227,22 +228,22 @@ legend(hsr,condLabels,'Location','NorthEast');
 
 figTitle = 'Fig2A_ThreshDevelopCurve.eps';
 set(gcf,'color','w','units','centimeters','pos',[5 5 figSize]);
-exportfig(gcf,fullfile(paths.figs,figTitle),'Format','eps','bounds','loose','color','rgb','LockAxes',0,'FontMode','fixed','FontSize',fontSize);
+exportfig(gcf,fullfile(opt.paths.figs,figTitle),'Format','eps','bounds','loose','color','rgb','LockAxes',0,'FontMode','fixed','FontSize',opt.fontSize);
 
 %% bootstrap parameter estimates
-if nBoots>0
+if opt.nBootstraps>0
     range95 = [2.5 97.5];
     range68 = 100*normcdf([-1 1]);
     
-    bootFitParams = NaN(nCueConds,nParams,nBoots);
+    bootFitParams = NaN(nCueConds,nParams,opt.nBootstraps);
     %vector of fit 'asympotes':
-    bootFitTotes = NaN(nCueConds,nBoots);
+    bootFitTotes = NaN(nCueConds,opt.nBootstraps);
     
     boot95CIs = NaN(nCueConds,nParams,2);
     boot68CIs = NaN(nCueConds,nParams,2);
     
     %also the simple linear model
-    bootLinearFitParams = NaN(nCueConds,2,nBoots);
+    bootLinearFitParams = NaN(nCueConds,2,opt.nBootstraps);
     bootLinear95CIs = NaN(nCueConds,2,2);
     
     %comparisons between conditions 
@@ -253,7 +254,7 @@ if nBoots>0
     
     toteComp95CIs = NaN(nComps,2);
     
-    for bi=1:nBoots
+    for bi=1:opt.nBootstraps
         ss = randsample(nSubj, nSubj, 'true');
         
         for cueI = 1:nCueConds
@@ -300,7 +301,7 @@ if nBoots>0
     
     
     %% print stats
-    statsF = fopen(fullfile(paths.stats,'Stats2A_ThresholdDevelopmentCurves.txt'),'w');
+    statsF = fopen(fullfile(opt.paths.stats,'Stats2A_ThresholdDevelopmentCurves.txt'),'w');
     fprintf(statsF,'STATS ON DEVELOPMENTAL EFFECTS ON ORIENTATION DISCRIMINATION THRESHOLDS\n');
     fprintf(statsF,'\n');
     
@@ -310,7 +311,7 @@ if nBoots>0
         fprintf(statsF,'\nRan analysis on thresholds not log-transformed\n');
     end
     fprintf(statsF,'\nFit type: %s\n\n', fitTypeName);
-    fprintf(statsF,'Bootstrapping %i repetitions\n',nBoots);
+    fprintf(statsF,'Bootstrapping %i repetitions\n',opt.nBootstraps);
     
     
     for unlog = [0 1]

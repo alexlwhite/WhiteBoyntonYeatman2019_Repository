@@ -1,4 +1,4 @@
-%% function Fig5_ThresholdResidsVsReading_SlidingWindow(T, condLabels, figSize, fontSize, paths)
+%% function Fig5_ThresholdResidsVsReading_SlidingWindow(T, condLabels, figSize, opt)
 % Makes Figure 5 in White, Boynton & Yeatman (2019)
 % This analyzes the association between reading ability and task
 % performance (Cued and Uncued thresholds, and the cueing effect on
@@ -13,13 +13,14 @@
 % - condLabels: cell array of labels of each condition for which we have
 %   residuals. 
 % - figSize: [width height] of the figure to be saved, in cm
-% - fontSize: size of the figure's font
-% - paths: a structure with full directory names for the figure folder
-%   (paths.figs) and stats folder (paths.stats) 
+% - opt: structure with fields: 
+%    - fontSize: size of the figure's font
+%    - paths: a structure with full directory names for the figure folder
+%      (opt.paths.figs) and stats folder (opt.paths.stats) 
 %
 % % By Alex L. White, University of Washington, 2019
 
-function Fig5_ThresholdResidsVsReading_SlidingWindow(T, condLabels, figSize, fontSize, paths)
+function Fig5_ThresholdResidsVsReading_SlidingWindow(T, condLabels, figSize, opt)
 
 close all;
 
@@ -43,17 +44,6 @@ ylimsA = [0.25 1];
 yticksA = ylimsA(1):0.25:ylimsA(2);
 
 ROCpermute = true; nPermute = 1000;
-
-%% pull out data 
-allAges = T.age;
-
-minAge = min(allAges);
-maxAge = max(allAges);
-
-readMeasure = 'twre_pde_ss';
-eval(sprintf('readScores = T.%s;', readMeasure));
-readMeasureLabel = 'TOWRE PDE';
-
 
 %% colors 
 
@@ -110,7 +100,7 @@ for condI = 1:nConds
     goodS = ~isnan(resids);
     resids = resids(goodS);
     theseAges = T.age(goodS);
-    theseReadScores = readScores(goodS);
+    theseReadScores = T.readScores(goodS);
     
     theseADHD = T.adhdDiagnosis(goodS);
     theseWASI = T.wasiMatrixReasoningTScore(goodS);
@@ -302,6 +292,6 @@ set(gca,'TitleFontSizeMultiplier',1,'TitleFontWeight', 'normal');
 set(gcf,'color','w','units','centimeters','pos',[5 5 figSize]);
 
 figTitle = 'Fig5_SlidingWindowResidsVsReading.eps';
-exportfig(gcf,fullfile(paths.figs,figTitle),'Format','eps','bounds','loose','color','rgb','LockAxes',0,'FontMode','fixed','FontSize',fontSize);
+exportfig(gcf,fullfile(opt.paths.figs,figTitle),'Format','eps','bounds','loose','color','rgb','LockAxes',0,'FontMode','fixed','FontSize',opt.fontSize);
 
 

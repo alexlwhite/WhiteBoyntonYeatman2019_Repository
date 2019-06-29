@@ -1,4 +1,4 @@
-%% function[residuals, condLabelShort] = FigS2A_CorrRTsDevelopment(T, figSize, fontSize, paths, nBoots)
+%% function[residuals, condLabelShort] = FigS2A_CorrRTsDevelopment(T, figSize, opt))
 % Make Figure S2A in White, Boynton & Yeatman (2019)
 % Individual mean correct RTs as a function of age in each condition, with a
 % j-shaped model of development. 
@@ -9,9 +9,9 @@
 %   each condition 
 % - figSize: a 2x1 vector of figure size in cm 
 % - fontSize: size of the font in the figure 
-% - paths: a structure with full directory names for the figure folder
-%   (paths.figs) and stats folder (paths.stats) 
-% - nBoots: number of bootstrapping repetitions to do
+% - opt.paths: a structure with full directory names for the figure folder
+%   (opt.paths.figs) and stats folder (opt.paths.stats) 
+% - opt.nBootstraps: number of bootstrapping repetitions to do
 % 
 % Outputs: 
 % - residuals: a Nx3 matrix of residuals from the fitted functions and each
@@ -20,7 +20,7 @@
 % 
 % by Alex L. White, University of Washington, 2019
 
-function [residuals, condLabelShort] = FigS2A_CorrRTsDevelopment(T, figSize, fontSize, paths, nBoots)
+function [residuals, condLabelShort] = FigS2A_CorrRTsDevelopment(T, figSize, opt)
 
 
 ageMin = floor(min(T.age));
@@ -234,21 +234,21 @@ legend(hsr,condLabels(cueCondsToPlot),'Location','NorthEast');
 
 figTitle = 'FigS2A_CorrRT_DevelopCurve.eps';
 set(gcf,'color','w','units','centimeters','pos',[5 5 figSize(1) figSize(2)]);
-exportfig(gcf,fullfile(paths.figs,figTitle),'Format','eps','bounds','loose','color','rgb','LockAxes',0,'FontMode','fixed','FontSize',fontSize);
+exportfig(gcf,fullfile(opt.paths.figs,figTitle),'Format','eps','bounds','loose','color','rgb','LockAxes',0,'FontMode','fixed','FontSize',opt.fontSize);
 
 %% bootstrap parameter estimates
 range95 = [2.5 97.5];
 range68 = 100*normcdf([-1 1]);
 
-bootFitParams = NaN(nCueConds,nParams,nBoots);
+bootFitParams = NaN(nCueConds,nParams,opt.nBootstraps);
 %vector of fit 'asympotes':
-bootFitTotes = NaN(nCueConds,nBoots);
+bootFitTotes = NaN(nCueConds,opt.nBootstraps);
 
 boot95CIs = NaN(nCueConds,nParams,2);
 boot68CIs = NaN(nCueConds,nParams,2);
 
 %also linear model
-bootLinearFitParams = NaN(nCueConds,2,nBoots);
+bootLinearFitParams = NaN(nCueConds,2,opt.nBootstraps);
 bootLinear95CIs = NaN(nCueConds,2,2);
 
 %comparisons
@@ -260,7 +260,7 @@ comp95CIs = NaN(nComps,nParams,2);
 toteComp95CIs = NaN(nComps,2);
 
 
-for bi=1:nBoots
+for bi=1:opt.nBootstraps
     ss = randsample(nSubj, nSubj, 'true');
     
     for cueI = 1:nCueConds
@@ -312,11 +312,11 @@ end
 
 
 %% print stats
-statsF = fopen(fullfile(paths.stats,'StatsS2A_CorrRT_Development.txt'),'w');
+statsF = fopen(fullfile(opt.paths.stats,'StatsS2A_CorrRT_Development.txt'),'w');
 fprintf(statsF,'STATS ON DEVELOPMENTAL EFFECTS ON MEAN CORRECT RTs\n');
 
 fprintf(statsF,'\nFit type: %s\n\n', fitTypeName);
-fprintf(statsF,'Bootstrapping %i repetitions\n',nBoots);
+fprintf(statsF,'Bootstrapping %i repetitions\n',opt.nBootstraps);
 
 
 

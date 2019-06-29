@@ -1,4 +1,4 @@
-%% function figh = FigS4A_RT_CueEffectReadGroupBars(T, subplotPositions, paths, nBoots)
+%% function figh = FigS4A_RT_CueEffectReadGroupBars(T, subplotPositions, opt)
 % Make Figure S4A for the supplement White, Boynton & Yeatman (2019)
 % Bar plots for cueing effects on RTs in 2 age groups (younger and older than 20) and
 % 2 reading groups (DYS and CON)
@@ -12,19 +12,16 @@
 %   each condition
 % - subplotPositions:  a RxCx4 matrix of subplot coordinates for R rows and
 %   C columns in this figure.
-% - paths: a structure with full directory names for the figure folder
-%   (paths.figs) and stats folder (paths.stats)
-% - nBoots: number of bootstrapping repetitions to do
+% - opt: structure with fields: 
+%   - paths: a structure with full directory names for the figure folder
+%     (opt.paths.figs) and stats folder (opt.paths.stats)
+%    - nBootstraps: number of bootstrapping repetitions to do
 %
 % Outputs:
 % - figh: figure handle
 % 
 % by Alex L. White, University of Washington, 2019
-function figh = FigS4A_RT_CueEffectReadGroupBars(T, subplotPositions, paths, nBoots)
-
-
-readMeasure = 'twre_pde_ss';
-eval(sprintf('readScores = T.%s;', readMeasure));
+function figh = FigS4A_RT_CueEffectReadGroupBars(T, subplotPositions, opt)
 
 
 %% Pull out data
@@ -60,10 +57,10 @@ Ns = NaN(nAgeGroups, nReadGroups);
 effectTable = table;
 effectTable.ageGroup = ageLabs(T.ageGroup)';
 effectTable.age = ages;
-effectTable.readScore = readScores;
-readScoresNormed = readScores - nanmean(readScores);
+effectTable.readScore = T.readScores;
+readScoresNormed = T.readScores - nanmean(T.readScores);
 
-thisAgeGroupReadScoresNormed  = NaN(size(readScores));
+thisAgeGroupReadScoresNormed  = NaN(size(T.readScores));
 thisAgeGroupAgeNormed = NaN(size(ages)); %just with the mean subtracted out
 thisAgeGroupWasiMRNormed = NaN(size(ages));
 
@@ -83,7 +80,7 @@ eval(sprintf('effectTable.%s = effects;', diffLabel));
 
 for ai = 1:nAgeGroups
     ageS = T.ageGroup==ai;
-    thisAgeGroupReadScoresNormed(ageS) = readScores(ageS) - nanmean(readScores(ageS));
+    thisAgeGroupReadScoresNormed(ageS) = T.readScores(ageS) - nanmean(T.readScores(ageS));
     thisAgeGroupAgeNormed(ageS) = ages(ageS) - mean(ages(ageS)); %normalize by subtracting the mean
     thisAgeGroupWasiMRNormed(ageS) = T.wasiMatrixReasoningTScore(ageS) - nanmean(T.wasiMatrixReasoningTScore(ageS));
     
@@ -95,7 +92,7 @@ for ai = 1:nAgeGroups
         %compute mean effects in this suject group
         if sum(ss)>1
             ms(ai,ri) = mean(effects(ss));
-            cis(ai,ri,:) =  boyntonBootstrap(@mean, effects(ss), nBoots, CIRange, bootstrapBCACorrection);
+            cis(ai,ri,:) =  boyntonBootstrap(@mean, effects(ss), opt.nBootstraps, CIRange, bootstrapBCACorrection);
         end
         
     end
@@ -114,24 +111,22 @@ readGroupsToPlot = find(~strcmp(readLabs,'Neither')); %
 
 nAges = length(ageGroupsToPlot);
 
-clear opt;
-
-opt.barWidth = 0.11;
-opt.edgeLineWidth = 2;
-opt.errorBarWidth = 1;
-opt.level1Sep = 0.3;
-opt.level2Sep = 0.2;
-opt.xLab = 'Age';
+plotOpt.barWidth = 0.11;
+plotOpt.edgeLineWidth = 2;
+plotOpt.errorBarWidth = 1;
+plotOpt.level1Sep = 0.3;
+plotOpt.level2Sep = 0.2;
+plotOpt.xLab = 'Age';
 
 ylims = [-50 50]; 
-opt.ylims = ylims;
-opt.legendLabs = readLabs(readGroupsToPlot);
-opt.legendLabs(strcmp(opt.legendLabs,'Dyslexic')) = {'DYS'};
-opt.legendLabs(strcmp(opt.legendLabs,'Typical')) = {'CON'};
+plotOpt.ylims = ylims;
+plotOpt.legendLabs = readLabs(readGroupsToPlot);
+plotOpt.legendLabs(strcmp(plotOpt.legendLabs,'Dyslexic')) = {'DYS'};
+plotOpt.legendLabs(strcmp(plotOpt.legendLabs,'Typical')) = {'CON'};
 
-opt.doLegend = true;
+plotOpt.doLegend = true;
 
-opt.yLab = 'mean RT difference';
+plotOpt.yLab = 'mean RT difference';
 
 
 effectHSV = [0.5 0.8 0.6];
@@ -150,22 +145,22 @@ hold on;
 effsToPlot = squeeze(ms(ageGroupsToPlot,readGroupsToPlot));
 cisToPlot = squeeze(cis(ageGroupsToPlot,readGroupsToPlot,:));
 
-opt.xTickLabs = ageLabs(ageGroupsToPlot);
+plotOpt.xTickLabs = ageLabs(ageGroupsToPlot);
 
 hues = ones(1,nAges)*effectHSV(1);
 ageColors = hsv2rgb([hues' ageSats' ageVals']);
 
-opt.fillColors = ones(nAges, length(readGroupsToPlot), 3);
-opt.fillColors(:,2,:) = reshape(ageColors,size(ageColors,1), 1, 3);
+plotOpt.fillColors = ones(nAges, length(readGroupsToPlot), 3);
+plotOpt.fillColors(:,2,:) = reshape(ageColors,size(ageColors,1), 1, 3);
 
-opt.edgeColors = 0.8*opt.fillColors;
-opt.edgeColors(:,1,:) = opt.edgeColors(:,2,:);
-opt.errorBarColors = opt.edgeColors*0.5;
+plotOpt.edgeColors = 0.8*plotOpt.fillColors;
+plotOpt.edgeColors(:,1,:) = plotOpt.edgeColors(:,2,:);
+plotOpt.errorBarColors = plotOpt.edgeColors*0.5;
 
 
-opt.yticks = opt.ylims(1):25:opt.ylims(2);
+plotOpt.yticks = plotOpt.ylims(1):25:plotOpt.ylims(2);
 
-barPlot_AW(effsToPlot,cisToPlot,opt);
+barPlot_AW(effsToPlot,cisToPlot,plotOpt);
 
 title(compLabel);
 
@@ -175,11 +170,11 @@ set(gca,'TitleFontWeight','normal','TitleFontSizeMultiplier',1.0);
 
 
 %% open file
-statsFile = fullfile(paths.stats,'StatsS4A_RTCueEffectAgeGroupByReadGroup.txt');
+statsFile = fullfile(opt.paths.stats,'StatsS4A_RTCueEffectAgeGroupByReadGroup.txt');
 diary(statsFile);
 statsF = fopen(statsFile,'w');
 
-fprintf(1,'Reading score: %s\n', readMeasure);
+fprintf(1,'Reading score: %s\n', opt.readMeasureLabel);
 
 fprintf(1,'\n');
 

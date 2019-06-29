@@ -1,4 +1,4 @@
-%% function FigZ_LapseRateVsReadingROCs(T, figHandle, subplotPositions, figSize, fontSize, paths)
+%% function FigZ_LapseRateVsReadingROCs(T, figHandle, subplotPositions, opt)
 % Analyze lapse rate in White, Boynton & Yeatman (2019)
 % This is the basis for results reported verbally in the Supplement. 
 % It plots residuals of lapse rates from the developmental model, and then
@@ -12,23 +12,28 @@
 % plotted. 
 % - subplotPositions: matrix of coordinates of the subplots, by row and
 %   column. 
-% - figSize: [width height] of the figure to be saved, in cm
-% - fontSize: size of the figure's font
-% - paths: a structure with full directory names for the figure folder
-%   (paths.figs) and stats folder (paths.stats) 
+% - opt: structure with fields: 
+%    - figSize: [width height] of the figure to be saved, in cm
+%    - fontSize: size of the figure's font
+%    - paths: a structure with full directory names for the figure folder
+%      (opt.paths.figs) and stats folder (opt.paths.stats) 
 % 
 % 
 % By Alex L. White, University of Washington, 2019
 
-function FigZ_LapseRateVsReadingROCs(T, figHandle, subplotPositions, figSize, fontSize, paths)
+function FigZ_LapseRateVsReadingROCs(T, figHandle, subplotPositions, figSize, opt)
 
 
 %% extract data
 lapseRates = T.lapseDevResiduals;
 
-readMeasure= 'twre_pde_ss';
-readMeasureLabel = 'TOWRE PDE';
-eval(sprintf('readScores = T.%s;', readMeasure));
+
+%determine which reading score we're using 
+if all(T.readScores == T.twre_pde_ss)
+    opt.readMeasureLabel = 'TOWRE PDE';
+elseif all(T.readScores == T.twre_swe_ss)
+    opt.readMeasureLabel = 'TOWRE SWE';
+end
 
 %% plot choices
 datColr = hsv2rgb([0.6 0.5 0.5]);
@@ -46,9 +51,9 @@ markSz = 5;
 %% A. plot of lapses as a function of reading score for all subjects
 
 
-goodS = ~isnan(readScores) & ~isnan(lapseRates);
+goodS = ~isnan(T.readScores) & ~isnan(lapseRates);
 
-readScoresToCorr = readScores(goodS);
+readScoresToCorr = T.readScores(goodS);
 lapseRatesToCorr = lapseRates(goodS);
 readGroupsToCorr = T.readingGroup(goodS);
 
@@ -81,7 +86,7 @@ end
 xlim(xlims); ylim(ylims);
 set(gca,'XTick',60:20:xlims(2),'YTick',ylims(1):0.05:ylims(2));
 
-xlabel(readMeasureLabel);
+xlabel(opt.readMeasureLabel);
 ylabel('Lambda residual');
 
 
@@ -126,26 +131,26 @@ hold on;
 bothRes = {dysRes, typRes};
 
 
-opt.midlineX = 0;
-opt.labelXVals = false;
-opt.doXLabel   = false;
-opt.doLegend   = false;
-opt.legendLabs = {'DYS','CON'};
-opt.legendLoc  = 'NorthEast';
-opt.fillColors = [1 1 1; datColr];
-opt.edgeColors = datColr([1; 1],:)*0.9;
-opt.meanColors = flipud(opt.fillColors);
-opt.fillLineWidth  = 1.5;
-opt.meanLineWidth = 2;
-opt.plotMean = true;
+plotOpt.midlineX = 0;
+plotOpt.labelXVals = false;
+plotOpt.doXLabel   = false;
+plotOpt.doLegend   = false;
+plotOpt.legendLabs = {'DYS','CON'};
+plotOpt.legendLoc  = 'NorthEast';
+plotOpt.fillColors = [1 1 1; datColr];
+plotOpt.edgeColors = datColr([1; 1],:)*0.9;
+plotOpt.meanColors = flipud(plotOpt.fillColors);
+plotOpt.fillLineWidth  = 1.5;
+plotOpt.meanLineWidth = 2;
+plotOpt.plotMean = true;
 
 %how to set kerney density
-opt.fixKernelWidth = false;
-opt.fixedKernelWidth = 0.06;
+plotOpt.fixKernelWidth = false;
+plotOpt.fixedKernelWidth = 0.06;
 %if not fixed, set the proportion by which to multiply the average of what ksdensity is the optimal kernel widths
-opt.kernelWidthFactor = 0.6;
+plotOpt.kernelWidthFactor = 0.6;
 
-kernelWidth = pairedSampleDensityPlot(bothRes, opt);
+kernelWidth = pairedSampleDensityPlot(bothRes, plotOpt);
 
 ylim(ylims);
 set(gca,'YTickLabel',{});
@@ -163,13 +168,13 @@ end
 
 
 %% stats  
-statsF = fopen(fullfile(paths.stats,'StatsZ_LapseRateVsReadAbility.txt'),'w');
+statsF = fopen(fullfile(opt.paths.stats,'StatsZ_LapseRateVsReadAbility.txt'),'w');
 fprintf(statsF,'STATS ON LAPSE RATES\n');
 
 fprintf(statsF,'\n\n--------------------------------------------------------------\n');
 fprintf(statsF,'RELATIONSHIP BETWEEN READING ABILITY AND LAPSE RATES RESIDUALS FROM THE DEVELOPMENTAL FIT\n');
 fprintf(statsF,'--------------------------------------------------------------\n');
-fprintf(statsF,'Correlation between lapse residuals and %s: rho = %.3f, p=%.3f\n', readMeasure, corrRho, corrP);
+fprintf(statsF,'Correlation between lapse residuals and %s: rho = %.3f, p=%.3f\n', opt.readMeasureLabel, corrRho, corrP);
 
 fprintf(statsF,'\nThen, dividing into Dyslexic vs Typical readers, comparing the lapse residuals:\n');
 fprintf(statsF,'\nDyslexics: mean lapse = %.4f, median = %.4f, SEM = %.3f', nanmean(dysRes), nanmedian(dysRes), standardError(dysRes'));
@@ -181,7 +186,7 @@ rT.lapseRates = lapseRates;
 rT.ageNormed = T.age - nanmean(T.age);
 rT.readingGroup = T.readingGroup;
 
-rT.readingScore = readScores;
+rT.readingScore = T.readScores;
 
 rT.wasiMatrix = T.wasiMatrixReasoningTScore;
 rT.wasiMatrixNormed = rT.wasiMatrix - nanmean(rT.wasiMatrix);
@@ -203,7 +208,7 @@ end
 fprintf(statsF,'\nROC analysis: Area Under Curve = %.3f, permutation 95%%CI = [%.3f %.3f], p=%.4f\n', Ag, nullAgCI(1), nullAgCI(2), nullAgP);
 fprintf(statsF,'\tSmoothing kernel width: %.3f',kernelWidth);
 
-fprintf(statsF,'\nThen a similar analysis with reading score (%s) as a continuous measure on all subjects:\n', readMeasure);
+fprintf(statsF,'\nThen a similar analysis with reading score (%s) as a continuous measure on all subjects:\n', opt.readMeasureLabel);
 
 eqtn2 = 'lapseRates ~ readingScore + ageNormed + adhd + wasiMatrixNormed';
 
@@ -227,5 +232,5 @@ plot(rT.readingScore, readScorePred,'-','Color',datColr*0.75);
 
 set(gcf,'color','w','units','centimeters','pos',[5 5 figSize]);
 figTitle = 'FigZ_LapseDevResiduals.eps';
-exportfig(gcf,fullfile(paths.figs,figTitle),'Format','eps','bounds','loose','color','rgb','LockAxes',0,'FontMode','fixed','FontSize',fontSize);
+exportfig(gcf,fullfile(opt.paths.figs,figTitle),'Format','eps','bounds','loose','color','rgb','LockAxes',0,'FontMode','fixed','FontSize',opt.fontSize);
 

@@ -1,4 +1,4 @@
-%% function residuals = FigS2B_CorrRT_CueEffectDevelopment(T, figSize, fontSize, paths, nBoots)
+%% function residuals = FigS2B_CorrRT_CueEffectDevelopment(T, figSize, opt)
 % Make Figure S2B for the supplement to White, Boynton & Yeatman (2019)
 % Individual cueing effects on mean correct RTs as a function of age in each condition, with a
 % piecewise linear model of development.
@@ -8,10 +8,11 @@
 % - T: table with information about each subejct and their thresholds in
 %   each condition
 % - figSize: a 2x1 vector of figure size in cm
-% - fontSize: size of the font in the fiture
-% - paths: a structure with full directory names for the figure folder
-%   (paths.figs) and stats folder (paths.stats)
-% - nBoots: number of bootstrapping repetitions to do
+% - opt: structure with fields:
+%    - fontSize: size of the font in the fiture
+%    - paths: a structure with full directory names for the figure folder
+%    (opt.paths.figs) and stats folder (opt.paths.stats)
+%    - nBootstraps: number of bootstrapping repetitions to do
 %
 % Outputs:
 % - residuals: a Nx1 matrix of residuals from the fitted function, for each
@@ -19,7 +20,7 @@
 % 
 % % By Alex L. White, University of Washington, 2019
 
-function residuals = FigS2B_CorrRT_CueEffectDevelopment(T, figSize, fontSize, paths, nBoots)
+function residuals = FigS2B_CorrRT_CueEffectDevelopment(T, figSize, opt)
 
 ageMin = floor(min(T.age));
 ageMax = ceil(max(T.age));
@@ -160,17 +161,17 @@ set(gca,'TitleFontWeight','normal','TitleFontSizeMultiplier',1.0);
 set(gcf,'color','w','units','centimeters','pos',[5 5 figSize]);
 figTitle = sprintf('FigS2B_RT_CueEffectDevelopment.eps');
 
-exportfig(gcf,fullfile(paths.figs,figTitle),'Format','eps','bounds','loose','color','rgb','LockAxes',0,'FontMode','fixed','FontSize',fontSize);
+exportfig(gcf,fullfile(opt.paths.figs,figTitle),'Format','eps','bounds','loose','color','rgb','LockAxes',0,'FontMode','fixed','FontSize',opt.fontSize);
 
 %% permutation test and bootstrapping
     
     %% bootstrapping straight linear model and  piecewise linear model
     
-    bootLinearFitParams = NaN(nBoots,2);
+    bootLinearFitParams = NaN(opt.nBootstraps,2);
     
-    bootParams = NaN(nBoots, length(fitParams));
+    bootParams = NaN(opt.nBootstraps, length(fitParams));
     nSubj = length(x);
-    for bi=1:nBoots
+    for bi=1:opt.nBootstraps
         ss = randsample(nSubj, nSubj, 'true');
         bootParams(bi,:) = lsqcurvefit(fitFun,startParams,x(ss),y(ss));
         
@@ -181,7 +182,7 @@ exportfig(gcf,fullfile(paths.figs,figTitle),'Format','eps','bounds','loose','col
     
     
     %% print stats
-    statsF = fopen(fullfile(paths.stats,'StatsS2B_CorrRTs_CueEffectDevelopment.txt'),'w');
+    statsF = fopen(fullfile(opt.paths.stats,'StatsS2B_CorrRTs_CueEffectDevelopment.txt'),'w');
     
     fprintf(statsF,'Fitting the ''two-lines joined'' model to the cueing effect: %s - %s\n',cueLabels{1},cueLabels{2});    
    

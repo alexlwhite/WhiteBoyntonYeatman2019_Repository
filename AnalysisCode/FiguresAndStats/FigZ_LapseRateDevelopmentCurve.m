@@ -1,4 +1,4 @@
-%% function [residuals] = FigZ_LapseRateDevelopmentCurve(T, figSize, fontSize, paths, nBoots)
+%% function [residuals] = FigZ_LapseRateDevelopmentCurve(T, figSize, opt)
 % Analyze lapse rate in White, Boynton & Yeatman (2019)
 % This is the basis for results reported verbally in the Supplmenet. 
 % It plots individual lambda parameters (1-upper asymptote) as a function
@@ -9,10 +9,11 @@
 % - T: table with informaiton about each subejct and their thresholds in
 %   each condition 
 % - figSize: a 2x1 vector of figure size in cm 
-% - fontSize: size of the font in the fiture 
-% - paths: a structure with full directory names for the figure folder
-%   (paths.figs) and stats folder (paths.stats) 
-% - nBoots: number of bootstrapping repetitions to do
+% - opt: structure with fields: 
+%    - fontSize: size of the font in the fiture 
+%    - paths: a structure with full directory names for the figure folder
+%     (opt.paths.figs) and stats folder (opt.paths.stats) 
+%    - nBootstraps: number of bootstrapping repetitions to do
 % 
 % Outputs: 
 % - residuals: a Nx1 vector of residuals from the fitted function
@@ -20,7 +21,7 @@
 % By Alex L. White, University of Washington, 2019
 
 
-function [residuals] = FigZ_LapseRateDevelopmentCurve(T, figSize, fontSize, paths, nBoots)
+function [residuals] = FigZ_LapseRateDevelopmentCurve(T, figSize, opt)
 
 ageMin = floor(min(T.age));
 ageMax = ceil(max(T.age));
@@ -131,22 +132,22 @@ ylabel('Lambda)');
 
 figTitle = 'FigZ_LapseDevelopCurve.eps';
 set(gcf,'color','w','units','centimeters','pos',[5 5 figSize(1) figSize(2)]);
-exportfig(gcf,fullfile(paths.figs,figTitle),'Format','eps','bounds','loose','color','rgb','LockAxes',0,'FontMode','fixed','FontSize',fontSize);
+exportfig(gcf,fullfile(opt.paths.figs,figTitle),'Format','eps','bounds','loose','color','rgb','LockAxes',0,'FontMode','fixed','FontSize',opt.fontSize);
 
 %% bootstrap parameter estimates
 range95 = [2.5 97.5];
 range68 = 100*normcdf([-1 1]);
 
-bootFitParams = NaN(nParams,nBoots);
+bootFitParams = NaN(nParams,opt.nBootstraps);
 boot95CIs = NaN(nParams,2);
 
 %vector of fit 'asympotes':
-bootFitTotes = NaN(1,nBoots);
+bootFitTotes = NaN(1,opt.nBootstraps);
 
 %also linear model
-bootLinearFitParams = NaN(2,nBoots);
+bootLinearFitParams = NaN(2,opt.nBootstraps);
 bootLinear95CIs = NaN(2,2);
-for bi=1:nBoots
+for bi=1:opt.nBootstraps
     ss = randsample(nSubj, nSubj, 'true');
     
     x = ages(ss)';
@@ -178,7 +179,7 @@ asymptote95CIs = prctile(bootFitTotes', range95)';
 asymptote68Is =  prctile(bootFitTotes', range68)';
 
 %% print stats
-statsF = fopen(fullfile(paths.stats,'StatsZ_LapseRateDevelopmentCurveFitStats.txt'),'w');
+statsF = fopen(fullfile(opt.paths.stats,'StatsZ_LapseRateDevelopmentCurveFitStats.txt'),'w');
 fprintf(statsF,'STATS ON DEVELOPMENTAL EFFECTS ON LAPSE RATES\n');
 
 %print some useful summaries 
@@ -188,7 +189,7 @@ lapsesOver20 = ds(ages>20)';
 fprintf(statsF,'\n\nMean lapse rate under age 20: %.3f (SEM = %.3f)', mean(lapsesOver20), standardError(lapsesOver20));
 
 fprintf(statsF,'\nFit type: %s\n\n', fitTypeName);
-fprintf(statsF,'Bootstrapping %i repetitions\n',nBoots);
+fprintf(statsF,'Bootstrapping %i repetitions\n',opt.nBootstraps);
 
 paramsToPrint = 1:nParams;
 

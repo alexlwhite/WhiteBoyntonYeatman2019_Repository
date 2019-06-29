@@ -1,4 +1,4 @@
-%% function figH = FigZ_LapseRateReadGroupBars(T, subplotPositions, paths, nBoots)
+%% function figH = FigZ_LapseRateReadGroupBars(T, subplotPositions, opt)
 % Analyze lapse rate in White, Boynton & Yeatman (2019)
 % This is the basis for results reported verbally in the Supplmenet. 
 % It plots mean lambda parameters (1-upper asymptote) in 2 age groups (<20, >20 years)
@@ -10,9 +10,10 @@
 % - T: table with information about each subject and their lapse rates.
 % - subplotPositions: a matrix indicating position of each subplot by row
 % and column 
-% - paths: a structure with full directory names for the figure folder
-%   (paths.figs) and stats folder (paths.stats) 
-% - nBoots: number of bootstrapping repetitions to do
+% - opt: structure with fields: 
+%    - paths: a structure with full directory names for the figure folder
+%      (opt.paths.figs) and stats folder (opt.paths.stats) 
+%    - nBootstraps: number of bootstrapping repetitions to do
 % 
 % Outputs: 
 % - figH:handle to this figure, to be completed in 2 other functions
@@ -20,7 +21,7 @@
 % 
 % By Alex L. White, University of Washington, 2019
 
-function figH = FigZ_LapseRateReadGroupBars(T, subplotPositions, paths, nBoots)
+function figH = FigZ_LapseRateReadGroupBars(T, subplotPositions, opt)
 
 statType = 'mean';
 eval(sprintf('summaryStat = @%s;', statType));
@@ -61,7 +62,7 @@ for ai = 1:nAgeGroups
         if sum(ss)>1
             ms(ai,ri) = summaryStat(ds(ss));
             sems(ai,ri) = standardError(ds(ss)');
-            cis(ai,ri,:) = boyntonBootstrap(summaryStat, ds(ss), nBoots, CIRange, bootstrapBCACorrection);
+            cis(ai,ri,:) = boyntonBootstrap(summaryStat, ds(ss), opt.nBootstraps, CIRange, bootstrapBCACorrection);
         end
     end
 end
@@ -71,22 +72,22 @@ end
 ageGroupsToPlot = 1:nAgeGroups;
 readGroupsToPlot = find(~strcmp(readLabs,'Neither'));
 
-opt.barWidth = 0.1;
-opt.edgeLineWidth = 1;
-opt.errorBarWidth = 1;
-opt.level1Sep = 0.4;
-opt.level2Sep = 0.18;
+plotOpt.barWidth = 0.1;
+plotOpt.edgeLineWidth = 1;
+plotOpt.errorBarWidth = 1;
+plotOpt.level1Sep = 0.4;
+plotOpt.level2Sep = 0.18;
 
-opt.xLab = 'Age';
-opt.xTickLabs = ageLabs(ageGroupsToPlot);
+plotOpt.xLab = 'Age';
+plotOpt.xTickLabs = ageLabs(ageGroupsToPlot);
 
 
-opt.ylims = [0 0.12];
-opt.yticks = 0:0.03:0.12;
-opt.yLab = sprintf('%s Lambda',statType);
+plotOpt.ylims = [0 0.12];
+plotOpt.yticks = 0:0.03:0.12;
+plotOpt.yLab = sprintf('%s Lambda',statType);
 
-opt.legendLabs = readLabs(readGroupsToPlot);
-opt.legendLoc = 'NorthEast';
+plotOpt.legendLabs = readLabs(readGroupsToPlot);
+plotOpt.legendLoc = 'NorthEast';
 
 %colors
 %cueLabels = {'Uncued','Big Cue','Small cue','Single stim'};
@@ -99,12 +100,12 @@ readColr = hsv2rgb([readHues' readSats' readVals']);
 readColr = reshape(readColr,[1 2 3]);
 ageXReadColr = repmat(readColr, [length(ageGroupsToPlot) 1 1]);
 
-opt.edgeColors = ageXReadColr;
-opt.fillColors = ageXReadColr;
-opt.fillColors(:,1,:) = 1; %dyslexics should be filled white
+plotOpt.edgeColors = ageXReadColr;
+plotOpt.fillColors = ageXReadColr;
+plotOpt.fillColors(:,1,:) = 1; %dyslexics should be filled white
 
 
-opt.errorBarColors = 0.5*opt.edgeColors;
+plotOpt.errorBarColors = 0.5*plotOpt.edgeColors;
 
 figH = figure;
 rowI = 1; colI = 1;
@@ -114,7 +115,7 @@ hold on;
 datsToPlot = squeeze(ms(ageGroupsToPlot,readGroupsToPlot,:));
 cisToPlot = squeeze(cis(ageGroupsToPlot,readGroupsToPlot,:));
 
-barPlot_AW(datsToPlot, cisToPlot, opt);
+barPlot_AW(datsToPlot, cisToPlot, plotOpt);
 
 
 set(gca,'LabelFontSizeMultiplier',1.0);
@@ -123,7 +124,7 @@ set(gca,'TitleFontWeight','normal','TitleFontSizeMultiplier',1.0);
 %% run LME
 
 
-statsFile = fullfile(paths.stats,'StatsZ_LapseByAgeAndReadGroup.txt');
+statsFile = fullfile(opt.paths.stats,'StatsZ_LapseByAgeAndReadGroup.txt');
 diary(statsFile);
 statsF = fopen(statsFile,'w');
 

@@ -1,4 +1,4 @@
-%% function figH = FigS1A_SmallCueThresholds(T, subplotPositions, paths)
+%% function figH = FigS1A_SmallCueThresholds(T, subplotPositions, opt)
 % Make Figure S1A for the supplement to White, Boynton & Yeatman (2019)
 % Individual thresholds in the Small Cue conditon as a function of reading score.  
 % Saves 1 figure and prints statistics to one text file. 
@@ -7,15 +7,15 @@
 % - T: table with information about each subject and their thresholds
 % - subplot positions: a RxCx4 matrix of subplot coordinates for this
 %   figure
-% - paths: a structure with full directory names for the figure folder
-%   (paths.figs) and stats folder (paths.stats) 
+% - opt: strucutre with field: paths: a structure with full directory names for the figure folder
+%   (opt.paths.figs) and stats folder (opt.paths.stats) 
 % 
 % Outputs: 
 % - figH: handle to this figure, which is completed by another function
 % 
 % by Alex L. White, University of Washington, 2019
 % 
-function figH = FigS1A_SmallCueThresholds(T, subplotPositions, paths)
+function figH = FigS1A_SmallCueThresholds(T, subplotPositions, opt)
 
 
 %% extract data
@@ -25,9 +25,6 @@ if log10Threshs
     thresholds = log10(thresholds);
 end
 
-readMeasure =  'twre_pde_ss';
-readMeasureLabel = 'TOWRE PDE';
-eval(sprintf('readScores = T.%s;', readMeasure));
 
 %only take subjects over 14
 ageMin = 14;
@@ -36,7 +33,7 @@ ageS = T.age>=ageMin;
 
 ages = T.age(ageS);
 thresholds = thresholds(ageS); 
-readScores = readScores(ageS); 
+readScores = T.readScores(ageS); 
 readGroups = T.readingGroup(ageS);
 
 
@@ -59,7 +56,7 @@ bothColrs = cat(3,dysFillColrs, typFillColrs);
 neitherFillColrs = mean(bothColrs,3);
 
 %% print stats
-statsF = fopen(fullfile(paths.stats,'Stats_S1A_SmallCueThresholdVsReadAbility.txt'),'w');
+statsF = fopen(fullfile(opt.paths.stats,'Stats_S1A_SmallCueThresholdVsReadAbility.txt'),'w');
 fprintf(statsF,'STATS ON DEVELOPMENTAL EFFECTS ON ORIENTATION DISCRIMINATION THRESHOLDS IN SMALL CUE CONDITION\n');
 
 if log10Threshs
@@ -160,26 +157,26 @@ bothRes = {dysRes, typRes};
 
 cueI = 1;
 
-opt.midlineX = 0;
-opt.labelXVals = false;
-opt.doXLabel   = false;
-opt.doLegend   = false;
-opt.legendLabs = {'DYS','CON'};
-opt.legendLoc  = 'NorthEast';
-opt.fillColors = [1 1 1; cueColrs(cueI,:)];
-opt.edgeColors = cueColrs([cueI; cueI],:)*0.9;
-opt.meanColors = flipud(opt.fillColors);
-opt.fillLineWidth  = 1.5;
-opt.meanLineWidth = 2;
-opt.plotMean = true;
+plotOpt.midlineX = 0;
+plotOpt.labelXVals = false;
+plotOpt.doXLabel   = false;
+plotOpt.doLegend   = false;
+plotOpt.legendLabs = {'DYS','CON'};
+plotOpt.legendLoc  = 'NorthEast';
+plotOpt.fillColors = [1 1 1; cueColrs(cueI,:)];
+plotOpt.edgeColors = cueColrs([cueI; cueI],:)*0.9;
+plotOpt.meanColors = flipud(plotOpt.fillColors);
+plotOpt.fillLineWidth  = 1.5;
+plotOpt.meanLineWidth = 2;
+plotOpt.plotMean = true;
 
 %how to set kerney density
-opt.fixKernelWidth = true;
-opt.fixedKernelWidth = 0.06;
+plotOpt.fixKernelWidth = true;
+plotOpt.fixedKernelWidth = 0.06;
 %if not fixed, set the proportion by which to multiply the average of what ksdensity is the optimal kernel widths
-opt.kernelWidthFactor = 0.6;
+plotOpt.kernelWidthFactor = 0.6;
 
-kernelWidth = pairedSampleDensityPlot(bothRes, opt);
+kernelWidth = pairedSampleDensityPlot(bothRes, plotOpt);
 
 ylim(ylims);
 set(gca,'YTickLabel',{});
@@ -199,7 +196,7 @@ end
 fprintf(statsF,'\n\n--------------------------------------------------------------\n');
 fprintf(statsF,'RELATIONSHIP BETWEEN READING ABILITY AND THRESHOLDS IN %s CONDITION\n', 'Small cue');
 fprintf(statsF,'--------------------------------------------------------------\n');
-fprintf(statsF,'Correlation between thresholds and %s: rho = %.3f, p=%.3f\n', readMeasure, corrRho, corrP);
+fprintf(statsF,'Correlation between thresholds and %s: rho = %.3f, p=%.3f\n', opt.readMeasureLabel, corrRho, corrP);
 
 fprintf(statsF,'\nThen, dividing into Dyslexic vs Typical readers, comparing the thresholds:\n');
 fprintf(statsF,'\nDyslexics: mean threshold = %.4f, median = %.4f, SEM = %.3f', nanmean(dysRes), nanmedian(dysRes), standardError(dysRes'));
@@ -237,7 +234,7 @@ end
 fprintf(statsF,'\nROC analysis: Area Under Curve = %.3f, permutation 95%%CI = [%.3f %.3f], p=%.4f\n', Ag, nullAgCI(1), nullAgCI(2), nullAgP);
 fprintf(statsF,'\tSmoothing kernel width: %.3f',kernelWidth);
 
-fprintf(statsF,'\nThen a similar analysis with reading score (%s) as a continuous measure on all subjects:\n', readMeasure);
+fprintf(statsF,'\nThen a similar analysis with reading score (%s) as a continuous measure on all subjects:\n', opt.readMeasureLabel);
 
 eqtn2 = 'thresholds ~ readingScore + ageNormed + adhd + wasiMatrixNormed';
 

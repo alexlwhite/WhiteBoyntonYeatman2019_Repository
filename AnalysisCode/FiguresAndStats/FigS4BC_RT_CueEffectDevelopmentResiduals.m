@@ -1,4 +1,4 @@
-%% function FigS4BC_RT_CueEffectDevelopmentResiduals(T, figSize, figHandle, subplotPositions, fontSize, paths)
+%% function FigS4BC_RT_CueEffectDevelopmentResiduals(T, figSize, figHandle, subplotPositions, opt)
 % Makes Figure S4B and S4C for the supplement to White, Boynton & Yeatman (2019)
 % This function plots residuals of RT cueing effects from the developmental model, and then
 % ROC anlaysis of those residuals comparing the DYS and CON groups. 
@@ -12,17 +12,14 @@
 %    plotted.
 % - subplotPositions: matrix of coordinates of the subplots, by row and
 %   column. 
-% - fontSize: size of the figure's font
-% - paths: a structure with full directory names for the figure folder
-%   (paths.figs) and stats folder (paths.stats) 
+% - opt: structure with fields: 
+%    - fontSize: size of the figure's font
+%    - paths: a structure with full directory names for the figure folder
+%   (opt.paths.figs) and stats folder (opt.paths.stats) 
 % 
 % 
 % By Alex L. White, University of Washington, 2019
-function FigS4BC_RT_CueEffectDevelopmentResiduals(T, figSize, figHandle, subplotPositions, fontSize, paths)
-
-readMeasure = 'twre_pde_ss';
-readMeasureLabel = 'TOWRE PDE';
-eval(sprintf('readScores = T.%s;', readMeasure));
+function FigS4BC_RT_CueEffectDevelopmentResiduals(T, figSize, figHandle, subplotPositions, opt)
 
 %% plot parameters (axis limits, colors)
 
@@ -47,9 +44,9 @@ panelB = subplot('position',squeeze(subplotPositions(rowI,colI,:)));
 hold on;
 
 residuals = T.RTCueEffectResiduals;
-goodS = ~isnan(readScores) & ~isnan(residuals);
+goodS = ~isnan(T.readScores) & ~isnan(residuals);
 
-readScoresToCorr = readScores(goodS);
+readScoresToCorr = T.readScores(goodS);
 residsToCorr = residuals(goodS);
 readGroupsToCorr = T.readingGroup(goodS);
 
@@ -74,7 +71,7 @@ xlim(xlims); ylim(ylims);
 set(gca,'XTick',xlims(1):25:xlims(2),'YTick',residYTicks);
 
 
-xlabel(readMeasureLabel);
+xlabel(opt.readMeasureLabel);
 ylabel('Cue effect residual');
 
 [corrRho, corrP] = corr(readScoresToCorr, residsToCorr);
@@ -116,26 +113,26 @@ hold on;
 
 bothRes = {dysRes, typRes};
 
-opt.midlineX = 0;
-opt.labelXVals    = false;
-opt.doXLabel      = true;
-opt.doLegend      = false;
-opt.legendLabs    = {'DYS','CON'};
-opt.legendLoc     = 'NorthEast';
-opt.fillColors    = [1 1 1; effectColr];
-opt.edgeColors    = [effectColr; effectColr];
-opt.meanColors    = [effectColr; 1 1 1];
-opt.fillLineWidth = 1.5;
-opt.meanLineWidth = 2;
-opt.plotMean      = true;
+plotOpt.midlineX = 0;
+plotOpt.labelXVals    = false;
+plotOpt.doXLabel      = true;
+plotOpt.doLegend      = false;
+plotOpt.legendLabs    = {'DYS','CON'};
+plotOpt.legendLoc     = 'NorthEast';
+plotOpt.fillColors    = [1 1 1; effectColr];
+plotOpt.edgeColors    = [effectColr; effectColr];
+plotOpt.meanColors    = [effectColr; 1 1 1];
+plotOpt.fillLineWidth = 1.5;
+plotOpt.meanLineWidth = 2;
+plotOpt.plotMean      = true;
 %how to set kerney density
-opt.fixKernelWidth = false;
-opt.fixedKernelWidth = 0.07;
+plotOpt.fixKernelWidth = false;
+plotOpt.fixedKernelWidth = 0.07;
 %if not fixed, set the proportion by which to multiply the average of what ksdensity is the optimal kernel widths
-opt.kernelWidthFactor = 0.6;
+plotOpt.kernelWidthFactor = 0.6;
 
 
-kernelWidth = pairedSampleDensityPlot(bothRes, opt);
+kernelWidth = pairedSampleDensityPlot(bothRes, plotOpt);
 
 ylim(ylims);
 set(gca,'YTickLabel',{});
@@ -152,13 +149,13 @@ end
 
 %% stats
 
-statsF = fopen(fullfile(paths.stats,'StatsS4B_RTCueEffectDevelopmentResiduals.txt'),'w');
+statsF = fopen(fullfile(opt.paths.stats,'StatsS4B_RTCueEffectDevelopmentResiduals.txt'),'w');
 fprintf(statsF,'STATS ON DEVELOPMENTAL EFFECT ON Cueing Effect on correct RTs\n');
 
 fprintf(statsF,'\n\n--------------------------------------------------------------\n');
 fprintf(statsF,'RELATIONSHIP BETWEEN READING ABILITY AND RESIDUALS OF THE PIECEWISE LINEAR AGE MODEL FOR THE BIG CUE - UNCUED EFFECT\n');
 fprintf(statsF,'--------------------------------------------------------------\n');
-fprintf(statsF,'Correlation between residuals and %s: rho = %.3f, p=%.3f\n', readMeasure, corrRho, corrP);
+fprintf(statsF,'Correlation between residuals and %s: rho = %.3f, p=%.3f\n', opt.readMeasureLabel, corrRho, corrP);
 
 fprintf(statsF,'\nThen, dividing into Dyslexic vs Typical readers, comparing the residuals:\n');
 fprintf(statsF,'\nDyslexics: mean residual = %.4f, median = %.4f, SEM = %.3f', nanmean(dysRes), nanmedian(dysRes), standardError(dysRes'));
@@ -169,7 +166,7 @@ rT = table;
 rT.resids = residuals;
 rT.readingGroup = T.readingGroup;
 
-rT.readingScore = readScores;
+rT.readingScore = T.readScores;
 
 rT.wasiMatrixNormed = T.wasiMatrixReasoningTScore - nanmean(T.wasiMatrixReasoningTScore);
 
@@ -190,7 +187,7 @@ end
 fprintf(statsF,'\nROC analysis: Area Under Curve = %.3f, permutation 95%%CI = [%.3f %.3f], p=%.4f\n', Ag, nullAgCI(1), nullAgCI(2), nullAgP);
 fprintf(statsF,'\tSmoothing kernel width: %.3f',kernelWidth);
 
-fprintf(statsF,'\nThen a similar analysis with reading score (%s) as a continuous measure on all subjects:\n', readMeasure);
+fprintf(statsF,'\nThen a similar analysis with reading score (%s) as a continuous measure on all subjects:\n', opt.readMeasureLabel);
 
 eqtn2 = 'resids ~ readingScore + adhd + wasiMatrixNormed';
 
@@ -213,6 +210,6 @@ plot(rT.readingScore, readScorePred,'-','Color', effectColr*0.75,'LineWidth',1.5
 
 set(gcf,'color','w','units','centimeters','pos',[5 5 figSize]);
 figTitle = 'FigS4_RTCueEffects.eps';
-exportfig(gcf,fullfile(paths.figs,figTitle),'Format','eps','bounds','loose','color','rgb','LockAxes',0,'FontMode','fixed','FontSize',fontSize);
+exportfig(gcf,fullfile(opt.paths.figs,figTitle),'Format','eps','bounds','loose','color','rgb','LockAxes',0,'FontMode','fixed','FontSize',opt.fontSize);
 
 
