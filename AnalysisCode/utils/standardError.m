@@ -18,6 +18,11 @@ function SEM = standardError(ds,dim)
 
 if nargin<2 || ~exist('dim','var')
     dim = ndims(ds);
+    
+     %if ds is a vector, make sure we take SEM over the one dimension that matters:
+    if isvector(ds)
+        dim = find(size(ds)>1);
+    end 
 end
 
 %N: count how many non-nan measurements there are 
