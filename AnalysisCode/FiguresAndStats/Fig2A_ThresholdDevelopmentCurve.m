@@ -125,15 +125,13 @@ allFitParams = NaN(nCueConds,3);
 
 %vector of fit 'asympotes':
 fitTotes = zeros(1,nCueConds);
-
 residuals = NaN(nSubj, nCueConds);
 
 linearFitParams = NaN(nCueConds,2);
 linearRSqr = NaN(1,nCueConds);
 linearXValRSqr  = NaN(1,nCueConds);
 model2RSqr      = NaN(1,nCueConds);
-model2XValRSqr = NaN(1,nCueConds);
-
+model2XValRSqr  = NaN(1,nCueConds);
 %x-value: ages 
 x = ages';
 
@@ -417,10 +415,10 @@ end
 cueBenefitPropOfMax = (someThreshs(:,1) - someThreshs(:,2)) ./ (someThreshs(:,1) - someThreshs(:,3));
 
 fprintf(statsF,'\n\nFor participants >= age %i, (uncued - cued) / (uncued - single):\n', minAge);
-fprintf(statsF,'\tmean = %.4f, median = %.4f, SEM = %.4f\n', mean(cueBenefitPropOfMax), median(cueBenefitPropOfMax), standardError(cueBenefitPropOfMax,1));
+fprintf(statsF,'\tmean = %.4f, median = %.4f, SEM = %.4f\n', nanmean(cueBenefitPropOfMax), nanmedian(cueBenefitPropOfMax), standardError(cueBenefitPropOfMax,1));
 
 %or, average first! 
-meanTs = mean(someThreshs,1);
+meanTs = nanmean(someThreshs,1);
 meanCueBenefitPropOfMax = (meanTs(1) - meanTs(2)) ./ (meanTs(1) - meanTs(3));
 fprintf(statsF,'\tAveraging thresholds over subjects first:  %.3f\n\n', meanCueBenefitPropOfMax);
 

@@ -27,7 +27,7 @@ end
 
 
 %% other choices 
-opt.nBootstraps      = 100; 
+opt.nBootstraps      = 5000; 
 opt.fontSize         = 11; 
 
 opt.qualityControl   = dataQualityControl; 

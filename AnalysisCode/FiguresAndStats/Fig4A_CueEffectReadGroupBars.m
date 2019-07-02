@@ -28,12 +28,21 @@ log10Dat = true;
 
 %% Pull out data
 ds = [T.thresh_Uncued T.thresh_Cued];
+cueLabels = {'Uncued','Cued'};
 
 if log10Dat
     ds = log10(ds);
 end
 
-cueLabels = {'Uncued','Cued'};
+%For this analysis, exclude any subjects who failed to perform above chance
+%in either the Uncued or Cued conditions, and therefore have NaNs for those
+%thresholds
+goodSubj = ~any(isnan(ds),2);
+T = T(goodSubj,:);
+
+ds = ds(goodSubj,:);
+
+
 
 effects = ds(:,1) - ds(:,2);
 compLabel = sprintf('%s-%s',cueLabels{1}, cueLabels{2});
@@ -192,9 +201,9 @@ else
     fprintf(1,'\nStatistics on raw thresholds not logged\n');
 end
 fprintf(1,'Reading score: %s\n', opt.readMeasureLabel);
-
-
 fprintf(1,'\n');
+
+fprintf(1,'\nTotal included subjects  = %i, excluding %i who have NaNs for either Cued or Uncued thresholds due to poor performance\n\n', sum(goodSubj), sum(~goodSubj));
 
 fprintf(1,'Counts of subjects in each age and reading group:\n');
 for ai=1:nAgeGroups
@@ -240,7 +249,7 @@ for ai = 1:nAgeGroups
         for azi = 1:2
             thisSubjSet = strcmp(effectTable.readGroup,readLabs{rzi}) & strcmp(effectTable.adhd, adhdLabs{azi}) & effectAgeSubst;
             nSubjs(rzi,azi) = sum(thisSubjSet);
-            eval(sprintf('meanEffects(rzi,azi) = mean(effectTable.%s(thisSubjSet));', diffLabel));
+            eval(sprintf('meanEffects(rzi,azi) = nanmean(effectTable.%s(thisSubjSet));', diffLabel));
         end
     end
     

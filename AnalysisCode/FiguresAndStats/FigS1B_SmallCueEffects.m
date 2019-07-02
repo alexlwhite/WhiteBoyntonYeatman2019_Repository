@@ -24,10 +24,21 @@ function FigS1B_SmallCueEffects(T, figH, subplotPositions, figSize, opt)
 threshs = [T.thresh_SmallCue T.thresh_Uncued];
 threshs = log10(threshs);
 
+
+%For this analysis, exclude any subjects who failed to perform above chance
+%in either the Uncued or Cued conditions, and therefore have NaNs for those
+%thresholds
+goodSubj = ~any(isnan(threshs),2);
+threshs = threshs(goodSubj,:);
+
+T = T(goodSubj,:);
+
 allEffects = diff(threshs,1,2);
 
 
-%only take subjects over 14
+%only take subjects over 14 (because only 1 below 14 did the version of the
+%experiment that included the small cue condition) 
+
 ageMin = 14;
 
 ageS = T.age>=ageMin;
@@ -54,7 +65,7 @@ bothColrs = cat(3,dysFillColr, typFillColr);
 neitherFillColr = mean(bothColrs,3);
 
 %% print stats
-statsF = fopen(fullfile(opt.paths.stats,'Stats_S1B_SmallCueEffectVsReadingAbility.txt'),'w');
+statsF = fopen(fullfile(opt.paths.stats,'StatsS1B_SmallCueEffectVsReadingAbility.txt'),'w');
 fprintf(statsF,'STATS ON DEVELOPMENTAL EFFECT ON Uncued-SmallCue Effect on Threshold IN CUEDL1\n');
 
 

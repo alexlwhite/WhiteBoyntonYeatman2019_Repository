@@ -17,10 +17,11 @@
 % 
 function figH = FigS1A_SmallCueThresholds(T, subplotPositions, opt)
 
+log10Threshs = true;
+
 
 %% extract data
 thresholds = T.thresh_SmallCue;
-log10Threshs = true;
 if log10Threshs
     thresholds = log10(thresholds);
 end
@@ -29,12 +30,22 @@ end
 %only take subjects over 14
 ageMin = 14;
 
-ageS = T.age>=ageMin;
+%and who performed above chance in this condition 
+ageS = T.age>=ageMin & ~isnan(thresholds);
+
+%number of subjects without a threshold
+nBadSubj = sum(isnan(thresholds));
 
 ages = T.age(ageS);
 thresholds = thresholds(ageS); 
 readScores = T.readScores(ageS); 
 readGroups = T.readingGroup(ageS);
+
+%also extract thresholds from the big cue condition, to correlate them. 
+bigCues = T.thresh_Cued(ageS); 
+if log10Threshs
+    bigCues = log10(bigCues);
+end
 
 
 %% plot choices
@@ -56,7 +67,7 @@ bothColrs = cat(3,dysFillColrs, typFillColrs);
 neitherFillColrs = mean(bothColrs,3);
 
 %% print stats
-statsF = fopen(fullfile(opt.paths.stats,'Stats_S1A_SmallCueThresholdVsReadAbility.txt'),'w');
+statsF = fopen(fullfile(opt.paths.stats,'StatsS1A_SmallCueThresholdVsReadAbility.txt'),'w');
 fprintf(statsF,'STATS ON DEVELOPMENTAL EFFECTS ON ORIENTATION DISCRIMINATION THRESHOLDS IN SMALL CUE CONDITION\n');
 
 if log10Threshs
@@ -65,10 +76,15 @@ else
     fprintf(statsF,'\nRan analysis on thresholds not log-transformed\n');
 end
 
-fprintf(statsF,'\n\nOnly including subjects over age 14, because only 1 person less than that did this condition, and that was in error.\n');
+fprintf(statsF,'\n\nOnly including subjects over age %i, because only 1 person younger than that did this condition, and that was in error.\n', ageMin);
+fprintf(statsF,'\nThere were %i subjects over %i, and this analysis includes %i subjects (%i excluded for lacking a good threshold.\n\n', sum(T.age>ageMin), ageMin, length(thresholds), nBadSubj);
 
-
-
+%compute correlations of the two types
+[cueTypeCorr, cueTypeP] = corr(thresholds, bigCues);
+fprintf(statsF, 'Correlation between small and big cue thresholds (N=%i): rho = %.3f, p=%.6f\n', length(thresholds), cueTypeCorr, cueTypeP);
+fprintf(statsF,'Means (SEMS) = %.3f (%.3f) for small, %.3f (%.3f) for big cue\n\n', mean(10.^thresholds), standardError(10.^thresholds), mean(10.^bigCues), standardError(10.^bigCues));
+[~,tp,~,tst] = ttest(thresholds, bigCues);
+fprintf(statsF,'\tt(%i) = %.3f, p=%.4f\n', tst.df, tst.tstat, tp);
 
 %% A. plot of thresholds as a function of reading score for all subjects
 

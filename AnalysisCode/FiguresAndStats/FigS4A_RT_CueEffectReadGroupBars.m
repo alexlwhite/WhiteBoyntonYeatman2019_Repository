@@ -29,6 +29,15 @@ ds = 1000*[T.corrRT_Uncued T.corrRT_Cued];
 
 cueLabels = {'Uncued','Cued'};
 
+
+%For this analysis, exclude any subjects who failed to perform above chance
+%in either the Uncued or Cued conditions, and therefore have NaNs  
+goodSubj = ~any(isnan(ds),2);
+T = T(goodSubj,:);
+
+ds = ds(goodSubj,:);
+
+
 effects = ds(:,1) - ds(:,2);
 compLabel = sprintf('%s-%s',cueLabels{1}, cueLabels{2});
 diffLabel = sprintf('%sVs%s',cueLabels{1}, cueLabels{2});
@@ -175,8 +184,10 @@ diary(statsFile);
 statsF = fopen(statsFile,'w');
 
 fprintf(1,'Reading score: %s\n', opt.readMeasureLabel);
-
 fprintf(1,'\n');
+
+fprintf(1,'\nTotal included subjects  = %i, excluding %i who have NaNs for either Cued or Uncued thresholds due to poor performance\n\n', sum(goodSubj), sum(~goodSubj));
+
 
 fprintf(1,'Counts of subjects in each age and reading group:\n');
 for ai=1:nAgeGroups

@@ -197,7 +197,7 @@ exportfig(gcf,fullfile(opt.paths.figs,figTitle),'Format','eps','bounds','loose',
     for pi=1:2
         fprintf(statsF,'\n\n%s\n', linearParamNames{pi});
         fprintf(statsF,'\nBestFit\t booted95%%CI\t\n');
-        fprintf(statsF,'%.4f\t [%.4f %.4f]\t [%.4f %.4f]\t', linearFitParams(pi), bootLinear95CIs(pi,1), bootLinear95CIs(pi,2));
+        fprintf(statsF,'%.4f\t [%.4f %.4f]', linearFitParams(pi), bootLinear95CIs(pi,1), bootLinear95CIs(pi,2));
         fprintf(statsF,'\n');
     end
     
