@@ -15,7 +15,7 @@
 clear; close all;
 
 %% wheher to exclude subjects or individual conditions based on performance not above chance: 
-dataQualityControl = 1;
+dataQualityControl = 2;
 QCLabels = {'NoExcl','ExcludeBadThreshs','ExcludeBadSubjs'};
 QCLabel = QCLabels{dataQualityControl};
 
@@ -34,6 +34,14 @@ paths.data = fullfile(paths.repo,'Data');
 paths.stats = fullfile(paths.repo,'Stats');
 paths.figs = fullfile(paths.repo,'Figures');
 
+if strcmp(readMeasure, 'twre_swe_ss')
+    paths.stats = fullfile(paths.stats,'SWE',QCLabel);
+    paths.figs = fullfile(paths.figs,'SWE',QCLabel);
+else
+    paths.stats = fullfile(paths.stats,QCLabel);
+    paths.figs = fullfile(paths.figs,QCLabel);
+end
+
     
 
 if ~isdir(paths.stats), mkdir(paths.stats); end
@@ -50,7 +58,7 @@ nSubj = size(T,1);
 propTooSlow = NaN(nSubj,1);
 accTooSlow = NaN(nSubj,1);
 T.lambda  = NaN(nSubj,1);
-
+T.aboveChance_Overall = NaN(nSubj,1);
 
 for si=1:size(T,1)
     %load in the text file with information about each trial
@@ -89,11 +97,15 @@ for si=1:size(T,1)
     
     %and accuracy on those excluded trials
     accTooSlow(si) = r.pcTooSlow;
+    
+    %whether is above chance overall
+    T.aboveChance_Overall(si) = r.aboveChance_Overall;
 end
 
 %% exclude any data? 
 includeSubjs = true(nSubj,1);
 aboveChance = [T.aboveChance_Uncued T.aboveChance_Cued T.aboveChance_SingleStim T.aboveChance_SmallCue];
+threshs = [T.thresh_Uncued T.thresh_Cued T.thresh_SingleStim T.thresh_SmallCue];
 
 if dataQualityControl==2
     %set individual bad thresholds (in conditions in which an
@@ -101,11 +113,28 @@ if dataQualityControl==2
     for ci=1:length(r.condLabels)
         thisCond = r.condLabels{ci};
         eval(sprintf('T.thresh_%s(~T.aboveChance_%s) = NaN;', thisCond, thisCond));
+        
+        %also get rid of RTs when accuracy was not above chance 
+        eval(sprintf('T.corrRT_%s(~T.aboveChance_%s) = NaN;', thisCond, thisCond));
+
     end
     
     %how many subjects did that affect? how many conditions?
     nSubjWithBadThreshs = sum(any(~aboveChance,2),1);
     nBadThreshsPerCond = sum(~aboveChance,1);
+
+    %how many subjects have bad thresholds in ALL the conditions they were
+    %tested in? 
+    aboveChanceIncl = aboveChance;
+    aboveChanceIncl(isnan(threshs)) = NaN;
+    allBadThreshs = all(aboveChanceIncl==0 | isnan(aboveChanceIncl), 2);
+    nExcludedBecauseAllBadThreshs = sum(allBadThreshs);
+    %excludeThose subjects
+    includeSubjs = includeSubjs & ~allBadThreshs;
+    excludedSubjects = T.IDs(~includeSubjs);
+
+    T = T(includeSubjs,:);
+
     
 elseif dataQualityControl==3
     %exclude participants who failed to perform above chance in all conditions
@@ -113,10 +142,6 @@ elseif dataQualityControl==3
     excludedSubjects = T.IDs(~includeSubjs);
     T = T(includeSubjs,:);
 end
-
-
-fprintf(1,'\nMean (SEM) percent trials with responses >4SDs over the subject''s median: %.3f (%.3f)\n', mean(100*propTooSlow(includeSubjs)), standardError(100*propTooSlow(includeSubjs),1));
-fprintf(1,'\nMean (SEM) p(correct) on trials with responses >4SDs over the subject''s median: %.3f (%.3f)\n', mean(accTooSlow(includeSubjs)), standardError(accTooSlow(includeSubjs),1));
 
 %% Sort subjects into groups based on reading ability (DYS, CON, or neither)
 
@@ -161,6 +186,7 @@ if dataQualityControl==3
     fprintf(f,'\nExcluding %i participants who''s performance was not above chance in at least one condition.\n\n', length(excludedSubjects));
 elseif dataQualityControl == 2
     fprintf(f,'\nExcluding %i individual thresholds from %i participants due to accuracy not being above chance.\n', sum(nBadThreshsPerCond), nSubjWithBadThreshs);
+    fprintf(f,'\nCompletely excluding %i subjects who didn''t perform above chance in any condition\n', nExcludedBecauseAllBadThreshs);
     fprintf(f,'\nNumber of bad thresholds in each condition:\n');
     for ci=1:length(r.condLabels)
         thisCond = r.condLabels{ci};
@@ -170,6 +196,8 @@ elseif dataQualityControl == 2
 elseif dataQualityControl==1
    fprintf(f,'\nNot excluding any subjects or conditions on the basis of bad performance.\n\n'); 
 end
+
+fprintf(f,'\nIncluding %i subjects in the data table\n\n', size(T,1));
 
 fprintf(f,'Dyslexic definition:\t%s', tableNotes.dyslexicDefinition);
 fprintf(f,'\n''Typical'' definition:\t%s\n', tableNotes.typicalDefinition);
