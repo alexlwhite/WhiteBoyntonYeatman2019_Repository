@@ -41,14 +41,6 @@ goodTrials=find(d.trialDone & ~d.pressedQuit & ~d.responseTimeout);
 % compute RT relative to post-cue onset
 d.RT = d.tRes - d.tGaborsOns;
 
-%Filter out too slow trials
-RT_SDCutoff = inf; %actually don't!
-r.tooSlowCutoff = median(d.RT(goodTrials))+RT_SDCutoff*std(d.RT(goodTrials));
-r.numTrialsTooSlow = sum(d.RT>=r.tooSlowCutoff);
-r.propTrialsTooSlow = r.numTrialsTooSlow/length(d.RT);
-r.pcTooSlow = nanmean(d.respCorrect(d.RT>=r.tooSlowCutoff));
-goodTrials = intersect(goodTrials,find(d.RT<r.tooSlowCutoff));
-
 %only include trials from 1st day of testing (because some subjects, but
 %not all, had more than 1 session) 
 goodTrials = intersect(goodTrials, find(d.dateNum==1));
