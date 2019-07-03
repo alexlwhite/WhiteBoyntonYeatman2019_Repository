@@ -24,7 +24,7 @@ function Fig4BC_CueEffectDevelopmentResiduals(T, figSize, figHandle, subplotPosi
 
 %% plot parameters (axis limits, colors)
 
-ylims = [-1 1];
+ylims = [-1.1 1.1];
 residYTicks = -1:0.5:1;
 
 markSz = 5;

@@ -104,7 +104,7 @@ for cueI = 1:nConds
     else
         set(gca,'XTickLabel',{});
     end
-    ylabel('\Delta log threshold');
+    ylabel('\Delta RT');
   
     %compute correlation and insert stats into the figure
     [corrRho, corrP] = corr(readScoresToCorr, residsToCorr);

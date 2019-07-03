@@ -21,7 +21,7 @@ QCLabel = QCLabels{dataQualityControl};
 
 %% which reading ability measure to use 
 %the TOWRE phonemic decoding efficiency scaled score:
-readMeasure = 'twre_pde_ss';
+readMeasure = 'twre_swe_ss';
 
 
 %% load table with subject info (demographics, test scores, etc)

@@ -139,8 +139,8 @@ Fig4BC_CueEffectDevelopmentResiduals(T, fig4Size, fig4Handle, subplotPositions, 
 
 
 %% Figure 5: Reading vs threshold residual correlations in a sliding window across the age range  
-fig5Size = [9 20];
-Fig5_ThresholdResidsVsReading_SlidingWindow(T,thresholdDevConds, fig5Size, opt);
+fig5Size = [10 17];
+Fig5_ThresholdResidsVsReading_SlidingWindow(T, thresholdDevConds, fig5Size, opt);
 
 
 %% Supplemental data: Lapse rate development
