@@ -9,19 +9,12 @@
 %
 % % By Alex L. White, University of Washington, 2019
 
-%This needs to be cleaned up for new QC protocol. get rid of code for
-%low response exclusion? 
-
 clear; close all;
 
-%% wheher to exclude subjects or individual conditions based on performance not above chance: 
-dataQualityControl = 2;
-QCLabels = {'NoExcl','ExcludeBadThreshs','ExcludeBadSubjs'};
-QCLabel = QCLabels{dataQualityControl};
 
-%% which reading ability measure to use 
+%% which reading ability measure to use
 %the TOWRE phonemic decoding efficiency scaled score:
-readMeasure = 'twre_swe_ss';
+readMeasure = 'twre_pde_ss';
 
 
 %% load table with subject info (demographics, test scores, etc)
@@ -35,14 +28,9 @@ paths.stats = fullfile(paths.repo,'Stats');
 paths.figs = fullfile(paths.repo,'Figures');
 
 if strcmp(readMeasure, 'twre_swe_ss')
-    paths.stats = fullfile(paths.stats,'SWE',QCLabel);
-    paths.figs = fullfile(paths.figs,'SWE',QCLabel);
-else
-    paths.stats = fullfile(paths.stats,QCLabel);
-    paths.figs = fullfile(paths.figs,QCLabel);
+    paths.stats = fullfile(paths.stats,'SWE');
+    paths.figs = fullfile(paths.figs,'SWE');
 end
-
-    
 
 if ~isdir(paths.stats), mkdir(paths.stats); end
 if ~isdir(paths.figs), mkdir(paths.figs); end
@@ -89,7 +77,7 @@ for si=1:size(T,1)
     
     %lapse rate parameter:
     T.lambda(si) = r.lambda;
-        
+    
     %whether is above chance overall
     T.aboveChance_Overall(si) = r.aboveChance_Overall;
 end
@@ -114,116 +102,89 @@ T.readingGroup(isControl) = {'Typical'};
 T.readingGroup(~isControl & ~isDyslexic) = {'Neither'};
 
 
-%% exclude any data? 
+%% exclude bad thresholds (and subjects who never before above chance)
 includeSubjs = true(nSubj,1);
 aboveChance = [T.aboveChance_Uncued T.aboveChance_Cued T.aboveChance_SingleStim T.aboveChance_SmallCue];
 threshs = [T.thresh_Uncued T.thresh_Cued T.thresh_SingleStim T.thresh_SmallCue];
 
 badThreshs = threshs(~aboveChance);
 
-if dataQualityControl==2
-    %set individual bad thresholds (in conditions in which an
-    %individual failed to perform above chance) to NaN:
-    for ci=1:length(r.condLabels)
-        thisCond = r.condLabels{ci};
-        eval(sprintf('T.thresh_%s(~T.aboveChance_%s) = NaN;', thisCond, thisCond));
-        
-        %also get rid of RTs when accuracy was not above chance 
-        eval(sprintf('T.corrRT_%s(~T.aboveChance_%s) = NaN;', thisCond, thisCond));
-
-    end
+%set individual bad thresholds (in conditions in which an
+%individual failed to perform above chance) to NaN:
+for ci=1:length(r.condLabels)
+    thisCond = r.condLabels{ci};
+    eval(sprintf('T.thresh_%s(~T.aboveChance_%s) = NaN;', thisCond, thisCond));
     
-    %how many subjects have bad thresholds in ALL the conditions they were
-    %tested in? 
-    aboveChanceIncl = aboveChance;
-    aboveChanceIncl(isnan(threshs)) = NaN;
-    allBadThreshs = all(aboveChanceIncl==0 | isnan(aboveChanceIncl), 2);
-    nExcludedBecauseAllBadThreshs = sum(allBadThreshs);
-    %excludeThose subjects
-    includeSubjs = includeSubjs & ~allBadThreshs;
-    excludedSubjects = T.IDs(~includeSubjs);
-
-    excludeT = T(~includeSubjs,:);
+    %also get rid of RTs when accuracy was not above chance
+    eval(sprintf('T.corrRT_%s(~T.aboveChance_%s) = NaN;', thisCond, thisCond));
     
-    T = T(includeSubjs,:);
-
-    
-    %how many of the remaining subjects have bad thresholds? 
-    subjsWithBadThreshs = any(~aboveChance(includeSubjs,:),2);
-    nSubjWithBadThreshs = sum(subjsWithBadThreshs,1);
-    %How many per condition?
-    nBadThreshsPerCond = sum(~aboveChance(includeSubjs,:),1);
-
- 
-
-    
-elseif dataQualityControl==3
-    %exclude participants who failed to perform above chance in all conditions
-    includeSubjs = all(aboveChance, 2);
-    excludedSubjects = T.IDs(~includeSubjs);
-    excludeT = T(~includeSubjs,:);
-
-    T = T(includeSubjs,:);
 end
+
+%how many subjects have bad thresholds in ALL the conditions they were tested in?
+aboveChanceIncl = aboveChance;
+aboveChanceIncl(isnan(threshs)) = NaN;
+allBadThreshs = all(aboveChanceIncl==0 | isnan(aboveChanceIncl), 2);
+nExcludedBecauseAllBadThreshs = sum(allBadThreshs);
+%excludeThose subjects
+includeSubjs = includeSubjs & ~allBadThreshs;
+excludedSubjects = T.IDs(~includeSubjs);
+
+excludeT = T(~includeSubjs,:);
+
+T = T(includeSubjs,:);
+
+
+%how many of the remaining subjects have bad thresholds?
+subjsWithBadThreshs = any(~aboveChance(includeSubjs,:),2);
+nSubjWithBadThreshs = sum(subjsWithBadThreshs,1);
+%How many per condition?
+nBadThreshsPerCond = sum(~aboveChance(includeSubjs,:),1);
+
 
 
 
 %% save table
 if strcmp(readMeasure, 'twre_swe_ss')
-    tableName = fullfile(paths.data, sprintf('AllSubjectResultsTable%s_SWE.mat',QCLabel));
+    tableName = fullfile(paths.data, 'AllSubjectResultsTable_SWE.mat');
 else
-    tableName = fullfile(paths.data, sprintf('AllSubjectResultsTable%s.mat',QCLabel));
+    tableName = fullfile(paths.data, 'AllSubjectResultsTable.mat');
 end
 save(tableName,'T','tableNotes');
 
-%% Run reliability analysis 
+%% Run reliability analysis
 analyzeThresholdReliability(T, paths);
 
 %% Print out group demographics and run some comparisons
 if strcmp(readMeasure, 'twre_swe_ss')
-    statsFile = fullfile(paths.stats,sprintf('GroupDemograpics%s_SWE.txt',QCLabel));
+    statsFile = fullfile(paths.stats, 'GroupDemograpics_SWE.txt');
 else
-    statsFile = fullfile(paths.stats,sprintf('GroupDemograpics%s.txt',QCLabel));
+    statsFile = fullfile(paths.stats, 'GroupDemograpics.txt');
 end
 f = fopen(statsFile,'w');
 
 fprintf(f,'Group demographics\n');
 
+fprintf(f,'\nCompletely excluding %i subjects who didn''t perform above chance in any condition\n', nExcludedBecauseAllBadThreshs);
 
-if dataQualityControl==3
-    fprintf(f,'\nExcluding %i participants who''s performance was not above chance in at least one condition.\n\n', length(excludedSubjects));
-    %information about excluded subjects
-    fprintf(f,'ID\t Gender\t Age\t Group\t Non-verbal IQ\t TOWRE PDE');
-    for exi=1:size(excludeT,1)
-        fprintf(f,'\n%s\t %i\t %.2f\t %s\t %.1f\t %.1f', excludeT.IDs(exi), excludeT.gender(exi), excludeT.age(exi), excludeT.readingGroup(exi), excludeT.wasiMatrixReasoningTScore(exi), excludeT.twre_pde_ss(exi));
-    end
-elseif dataQualityControl == 2
-    fprintf(f,'\nCompletely excluding %i subjects who didn''t perform above chance in any condition\n', nExcludedBecauseAllBadThreshs);
-
-    %information about excluded subjects
-    fprintf(f,'ID\t Gender\t Age\t Group\t Non-verbal IQ\t TOWRE PDE\n');
-    for exi=1:size(excludeT,1)
-        fprintf(f,'%s\t %i\t %.2f\t %s\t %.1f\t %.1f\n', excludeT.IDs{exi}, excludeT.gender(exi), excludeT.age(exi), excludeT.readingGroup{exi}, excludeT.wasiMatrixReasoningTScore(exi), excludeT.twre_pde_ss(exi));
-    end
-    
-    fprintf(f,'\nAfter that, excluding %i individual thresholds from %i participants due to accuracy not being above chance.\n', sum(nBadThreshsPerCond), nSubjWithBadThreshs);
-    iffySubjectAges = T.age(subjsWithBadThreshs);
-    fprintf(f,'Their ages ranges from %.1f to %.1f (mean=%.1f)\n', min(iffySubjectAges), max(iffySubjectAges), mean(iffySubjectAges));
-    fprintf(f,'\nNumber of bad thresholds in each condition:\n');
-    for ci=1:length(r.condLabels)
-        thisCond = r.condLabels{ci};
-        fprintf(f,'\n\t%s \t%i', thisCond, nBadThreshsPerCond(ci));
-    end
-    fprintf(f,'\n\n');
-    fprintf(f,'Those bad thresholds were:\n\t');
-    fprintf(f,'%.2f\t', badThreshs);
-    fprintf(f,'\n\n');
-    
-    
-elseif dataQualityControl==1
-   fprintf(f,'\nNot excluding any subjects or conditions on the basis of bad performance.\n\n'); 
+%information about excluded subjects
+fprintf(f,'ID\t Gender\t Age\t Group\t Non-verbal IQ\t TOWRE PDE\n');
+for exi=1:size(excludeT,1)
+    fprintf(f,'%s\t %i\t %.2f\t %s\t %.1f\t %.1f\n', excludeT.IDs{exi}, excludeT.gender(exi), excludeT.age(exi), excludeT.readingGroup{exi}, excludeT.wasiMatrixReasoningTScore(exi), excludeT.twre_pde_ss(exi));
 end
 
+fprintf(f,'\nAfter that, excluding %i individual thresholds from %i participants due to accuracy not being above chance.\n', sum(nBadThreshsPerCond), nSubjWithBadThreshs);
+iffySubjectAges = T.age(subjsWithBadThreshs);
+fprintf(f,'Their ages ranges from %.1f to %.1f (mean=%.1f)\n', min(iffySubjectAges), max(iffySubjectAges), mean(iffySubjectAges));
+fprintf(f,'\nNumber of bad thresholds in each condition:\n');
+for ci=1:length(r.condLabels)
+    thisCond = r.condLabels{ci};
+    fprintf(f,'\n\t%s \t%i', thisCond, nBadThreshsPerCond(ci));
+end
+fprintf(f,'\n\n');
+fprintf(f,'Those bad thresholds were:\n\t');
+fprintf(f,'%.2f\t', badThreshs);
+fprintf(f,'\n\n');
+    
 fprintf(f,'\nIncluding %i subjects in the data table\n\n', size(T,1));
 
 fprintf(f,'Dyslexic definition:\t%s', tableNotes.dyslexicDefinition);
