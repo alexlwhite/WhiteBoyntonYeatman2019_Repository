@@ -1,6 +1,6 @@
 %function r = analyzeTrials(d,r,binFit,fixedLapse,fixedSlope,nGoodSim)
 %
-%Analyze a subset of trials in the cued visual search experiment in White, Boynton & Yeatman's 2019 paper: 
+% Analyze a subset of trials in the cued visual search experiment in White, Boynton & Yeatman's 2019 paper: 
 % "The link between visual spatial attention and reading ability across development"
 % 
 % This function fits psychometric functions using the Palamedes toolbox (http://www.palamedestoolbox.org/) 

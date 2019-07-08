@@ -3,7 +3,7 @@
 % experiment in White, Boynton & Yeatman's 2019 paper: 
 % "The link between visual spatial attention and reading ability across development"
 % 
-% This funciton fits psychometric functions to each condition. The slope is
+% This function fits psychometric functions to each condition. The slope is
 % fixed to 1.77, which I found to be the mean across subjects when the
 % slope was free. 
 %
@@ -15,7 +15,7 @@
 % interest (e.g., gabor tilt, response, condition) 
 % 
 % Outputs: 
-% - r: structure containing results for each condition, like thresholds
+% - r: structure containing results for each condition, including thresholds
 % (thresh_Uncued, thresh_Cued, etc) and mean RT on correct trials
 % (corrRT_Uncued, corrRT_Cued, etc). Also contains the lapse rate
 % parameter, lambda, a cell array of condition labels, and information

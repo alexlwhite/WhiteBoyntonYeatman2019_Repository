@@ -1,24 +1,20 @@
+%% Small script to examine the relationship between TOWRE PDE and SWE in this data set 
+
+%% load data
 datpath = '/Users/alexwhite/Dropbox/PROJECTS/PsychDys/CueDL1/WhiteBoyntonYeatman2019_Repository/Data';
 load(fullfile(datpath, 'AllSubjectResultsTable.mat'));
 
 %subjects to exclude for not being above chance ever:
 badSubjs = {'150_MG', '161_AK', '172_TH'};
 goodSubjs = ~ismember(T.IDs,badSubjs);
-
 T = T(goodSubjs,:);
 
-
-axlim = [60 140];
-
-
-% figure; plot(T.twre_pde_ss, T.twre_swe_ss,'.');
-% xlim(axlim); ylim(axlim);
-
+%% compute correlation between SWE and PDE 
 goodS = ~isnan(T.twre_pde_ss) & ~isnan(T.twre_swe_ss);
 
 [rho, pval] = corr(T.twre_pde_ss(goodS), T.twre_swe_ss(goodS))
 
-%%
+%% how similar are the reading ability groups (DYS, CON) if we divide by PDE vs SWE
 %cutoff for being dyslexic:
 readingCutoff = 85;
 
@@ -53,4 +49,4 @@ for rgi=1:2
     pOverlap(2,rgi) = mean(ismember(sNumsByGroup{2,rgi},sNumsByGroup{1,rgi}));
 end
 
-numBothTypesOfDyslexic = sum(all(isDyslexicByReadMeasure,2))
+numBothTypesOfDyslexic = sum(all(isDyslexicByReadMeasure,2));

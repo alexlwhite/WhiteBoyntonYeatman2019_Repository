@@ -1,3 +1,22 @@
+%%  function analyzeThresholdReliability(T, paths)
+% This function analyizes the reliability of threshold estimates for the data set reported in: 
+% White, Boynton & Yeatman (2019): The link between visual spatial attention and reading ability across development
+% 
+% It analyzes each subject's data set split in half, then computes the
+% correlation between test-retest thresholds. 
+% 
+% It is currently set to only include subjects who were tested twice
+% (maxSessions==2). But it could also incude all subjects, and only use the
+% first session of data split in half, if maxSessions=1. 
+% 
+% Inputs: 
+% - T: table with results from the main anaylsis, with 1 row for each subject  
+% - paths: structure of character strings that indicate the directories of
+% important folders (e.g., paths.data.indiv) 
+%
+% By Alex L. White, University of Washington, 2019
+
+
 function analyzeThresholdReliability(T, paths)
 
 %% choices
@@ -8,7 +27,7 @@ nConds = 4;
 %cap thresholds at this value to avoid nonsensical outliers (has no effect
 %for session1 to session2 reliability)
 threshCap = 1000;
-threshReplace = 133;
+threshReplace = 133; %the maximum observed in the main data set 
 
 doPlot = false;
 
