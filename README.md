@@ -1,7 +1,7 @@
 WhiteBoyntonYeatman2019_Repository
-by Alex L. White, June 2019 
+by Alex L. White, July 2019 at the University of Washington 
 
-This repository contains raw data and analysis code associated with White, Boynton & Yeatman's 2019 article, "The link between reading ability and visual spatial attention across development"
+This repository contains raw data and analysis code associated with White, Boynton & Yeatman's 2019 article, "The link between reading ability and visual spatial attention across development."
 
 Using the Matlab code here, you can recreate all the figures and statistical analyses reported in the paper. 
 
@@ -33,16 +33,18 @@ The data folder also contain the csv file SubjectInfoTable.csv. This is a table 
     - wasiMatrixReasoningTScore: non-verbal IQ score 
     - wasiFullScale2Score: full IQ score. 
 
-The Data folder also includes a Matlab version of that table: SubjectInfoTable.mat. Those same data are stored in a table T, along with a structure called tableNotes, with some info about the subjects that were excluded. Three were excluded for having vision problems, and nine for failing to performing above chance. The IDs for those subjects are in this tableNotes structure. Note that those participant's data is included in the Data/indiv folder. 
+The Data folder also includes a Matlab version of that table: SubjectInfoTable.mat. Those same data are stored in a table T, along with a structure called tableNotes, with some info about the three subjects that were excluded for having vision problems. Note that those participant's data are still included in the Data/indiv folder. 
 
 Finally, the Data folder includes the table with each subject's results added. This is the result of running the script WBY2019_AnalyzeSubjects. This table is saved as AllSubjectResultsTable.mat.
 
 (2) AnalysisCode 
 
 There are two main scripts to run all the analysis: 
-WBY2019_AnalyzeSubjects.m. This loads in the raw data, analyzes each subject (fitting psychometric functions, etc) and saves the results in a table in Data/AllSubjectResultsTable.mat. This script calls analyzeSubject and analyzeTrials. 
+WBY2019_AnalyzeSubjects.m. This loads in the raw data, analyzes each subject (fitting psychometric functions, etc) and saves the results in a table in Data/AllSubjectResultsTable.mat. This script calls analyzeSubject, analyzeTrials, and analyzeThresholdReliability. 
 
 WBY2019_FiguresAndStats.m This script loads in the table with all the individual results, and does the group-level analyses to reproduce all the figures in the manuscript. Those are saves as .eps files in the Figures folder. It also prints the results of statistical analyses to .txt files in the Stats folder. For each figure, it calls a function in the AnalysisCode/FiguresAndStats subfolder. 
+
+Note: in both the AnalyzeSubjects script and the FiguresAndStats script, it is possible to change the reading measure used to sort the subjects from the TOWRE Phonemic Decoding Efficiency score (twre_pwd_ss) to the Sight Word Efficiency score (twre_swe_ss). If so, the figures are put in Figures/SWE, the stats in Stats/SWE, and the results table is saved as AllSubjectResultsTable_SWE.mat.  
 
 There is also a subfolder AnalysisCode/utils, which contains various functions needed for the analysis. All were written by Alex White, except: 
 - boyntonBootstrap (adapted from a function by Geoffrey M. Boynton)
