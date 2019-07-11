@@ -1,15 +1,28 @@
 WhiteBoyntonYeatman2019_Repository
 by Alex L. White, July 2019 at the University of Washington 
 
-This repository contains raw data and analysis code associated with White, Boynton & Yeatman's 2019 article, "The link between reading ability and visual spatial attention across development."
+This repository contains experiment code, raw data, and analysis code associated with White, Boynton & Yeatman's 2019 article, "The link between reading ability and visual spatial attention across development."
 
-Using the Matlab code here, you can recreate all the figures and statistical analyses reported in the paper. 
+Using the Matlab code here, you can run the experiment and collect your own data, and use our data set to recreate all the figures and statistical analyses reported in the paper. 
 
-Fitting psychometric functions requires the Palamedes Toolbox (http://www.palamedestoolbox.org/). We used version 1.8. Our code also depends on several functions in Matlab's statistics toolbox, such as fitlme.  
+Running the staircase in the experiment as well as fitting psychometric functions requires the Palamedes Toolbox (http://www.palamedestoolbox.org/). We used version 1.8. Our code also depends on several functions in Matlab's statistics toolbox, such as nanmean, randsample, and fitlme.  
 
 There are several folders in this repo: 
 
-(1) Data. In Data/indiv, there is 1 text file for each of the 129 participants who completed at least 1 session of the study. Each text file is named with format XXAllDat.txt, where XX is the subject's anonymized ID code. Each text file is a tab-delimited table, with 1 row for each trial. There are many columns. The most important ones are: 
+(1) ExperimentCode. This contains code to run the experiment, display stimuli, and collect responses. First open the script Start_CueDL1, set the "subj" variable to the subject ID, the experimentVersion, and computerName. Then run that script and it will prompt you about doing practice blocks, and then continuing to the main experiment. 
+
+Note: the keys for the subject to respond are the down arrow and the up arrow, to report counterclockwise and clockwise tilts, respectively. To end a block of trials early, press q. Those key assigments are set in getKeyAssignment.m. 
+
+Data you collect are stored in ExperimentCode/data/subj/subj<DATE>, where <DATE> is something like Jul11. Where the data are automatically saved is determined in setupDataFile.m. For each block run, two files will automaticlaly be saved: a .mat file and a .txt file. The .txt file contains 1 row for each trial, and many columns for various descriptors of what happened on that trial. The .mat file contains two variables: scr, a structure with information about the screen, and task. The task variable is a structure with lots of other information about the stimulus and task, including task.data, with many fields, each of which is a vector. Each element of those vectors is for 1 trial. For example, task.data.respCorrect records whether the subject's response on each trial was correct or incorrect. 
+
+    
+The ExperimentCode folder contains several subfolders: 
+- displayInfo: information about displays, to correctly size stimuli and calibrate the luminance output. getDisplayParameters.m is where you can enter the details of your display (which is linked to the computerName variable set in Start_CueDL1.m)
+- experiment: this contains most of the code to present the stimuli. CueDL1_Params sets parameters for the stimuli. 
+- eyetrack: this contains functions to communicate with an Eyelink eyetracker. However, the code is *not* currently set up to do any eye-tracking, so this code is unused. But it could be used if params.EYE is set to 1 (in experiment/CueDL1_Params.) 
+- utils: various other useful functions. 
+
+(2) Data. This contains the data set reported in our paper. In Data/indiv, there is 1 text file for each of the 129 participants who completed at least 1 session of the study. Each text file is named with format XXAllDat.txt, where XX is the subject's anonymized ID code. Each text file is a tab-delimited table, with 1 row for each trial. There are many columns. The most important ones are: 
 - cueCond: stimulus condition. 0=Uncued; 1=Cued, 2=Single Stimulus; 3=Small Cue 
 - gaborTilt: degrees of tilt of the target Gabor. 
 - tiltDirctn: -1 or 1, for counterclockwise or clockwise tilt of the target (relative to vertical)
@@ -37,7 +50,7 @@ The Data folder also includes a Matlab version of that table: SubjectInfoTable.m
 
 Finally, the Data folder includes the table with each subject's results added. This is the result of running the script WBY2019_AnalyzeSubjects. This table is saved as AllSubjectResultsTable.mat.
 
-(2) AnalysisCode 
+(3) AnalysisCode 
 
 There are two main scripts to run all the analysis: 
 WBY2019_AnalyzeSubjects.m. This loads in the raw data, analyzes each subject (fitting psychometric functions, etc) and saves the results in a table in Data/AllSubjectResultsTable.mat. This script calls analyzeSubject, analyzeTrials, and analyzeThresholdReliability. 
