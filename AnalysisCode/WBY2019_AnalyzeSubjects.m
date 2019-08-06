@@ -253,8 +253,16 @@ for sri = 1:numel(scoreNames)
 end
 fprintf(f,'\n');
 
+%% count participants in the DYS group based on SWE only, PDE only, or both 
+SWEDys = (T.readingProblems==1 | T.dyslexiaDiagnosis==1) & T.twre_swe_ss <= readingCutoff;
+PDEDys = (T.readingProblems==1 | T.dyslexiaDiagnosis==1) & T.twre_pde_ss <= readingCutoff;
 
+nSWEOnly = sum(SWEDys & ~PDEDys);
+nPDEOnly = sum(PDEDys & ~SWEDys); 
+nBoth = sum(PDEDys & SWEDys); 
+nEither = sum(PDEDys | SWEDys); 
 
-
+fprintf(1,'\nCounts of subjects who qualify for the DYS group based on SWE, PDE, or both:\n'); 
+fprintf(1,'SWE only: %i, PDE only: %i, both: %i, either: %i\n', nSWEOnly, nPDEOnly, nBoth, nEither);
 
 
